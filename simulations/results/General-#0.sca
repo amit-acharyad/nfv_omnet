@@ -1,0 +1,47 @@
+version 3
+run General-0-20250618-20:59:34-12056
+attr configname General
+attr datetime 20250618-20:59:34
+attr datetimef 20250618-205934
+attr experiment General
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvarsd ""
+attr iterationvarsf ""
+attr measurement ""
+attr network nfv.Nfvservicechain
+attr processid 12056
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+config network nfv.Nfvservicechain
+config sim-time-limit 10s
+
+par Nfvservicechain.client[0] typename "\"nfv.Client\""
+par Nfvservicechain.client[0] sendInterval 1s
+attr unit s
+par Nfvservicechain.client[0] packetSize 1024B
+attr unit B
+par Nfvservicechain.client[1] typename "\"nfv.Client\""
+par Nfvservicechain.client[1] sendInterval 1s
+attr unit s
+par Nfvservicechain.client[1] packetSize 1024B
+attr unit B
+par Nfvservicechain.client[2] typename "\"nfv.Client\""
+par Nfvservicechain.client[2] sendInterval 1s
+attr unit s
+par Nfvservicechain.client[2] packetSize 1024B
+attr unit B
+par Nfvservicechain.client[3] typename "\"nfv.Client\""
+par Nfvservicechain.client[3] sendInterval 1s
+attr unit s
+par Nfvservicechain.client[3] packetSize 1024B
+attr unit B
+par Nfvservicechain.firewall typename "\"nfv.Firewall\""
+par Nfvservicechain.loadBalancer typename "\"nfv.Loadbalancer\""
+par Nfvservicechain.server[0] typename "\"nfv.Server\""
+par Nfvservicechain.server[1] typename "\"nfv.Server\""
+par Nfvservicechain typename "\"nfv.Nfvservicechain\""
+
