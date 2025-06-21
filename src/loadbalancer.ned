@@ -17,6 +17,11 @@ package nfv;
 
 simple Loadbalancer
 {
+    parameters:
+        double cpuConsumptionPerPacket @unit("MIPS");
+        double memoryConsumption @unit("MB");
+        double bandwidthConsumption @unit("Mbps");
+        
     gates:
         input clientIn[4];
         output clientOut[4];

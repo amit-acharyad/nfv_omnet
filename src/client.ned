@@ -24,7 +24,6 @@ simple Client
         double sendInterval @unit(s)=default(1s);
         int packetSize @unit(B)= default(1024B);
     gates:
-        input in;
-        output out;
+        inout eth[];
 }
 

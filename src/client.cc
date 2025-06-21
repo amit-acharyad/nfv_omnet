@@ -14,7 +14,7 @@
 // 
 
 #include <omnetpp.h>
-#include "packet_m.h"
+#include "messages/packet_m.h"
 
 using namespace omnetpp;
 

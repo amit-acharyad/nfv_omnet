@@ -14,27 +14,53 @@
 // 
 
 package nfv;
+import inet.node.inet.StandardHost;
 
 network Nfvservicechain
 {
     
     submodules:
         client[4]: Client;
-        firewall: Firewall;
-        loadBalancer: Loadbalancer;
-        server[2]: Server;
+        centralSwitch :StandardHost;
+       // firewall: Firewall;
+       // loadBalancer: Loadbalancer;
+        //server[2]: Server;
+        nfviNode1:Nfvinode{
+        id=1;
+        cpuCapacity=10000 MIPS;
+        memoryCapacity=8192 MB;
+        networkBandwidth=1000 Mbps;
+        
+        
+        }
+        nfviNode2: Nfvinode{
+        id=2;
+        cpuCapacity=10000 MIPS;
+        memoryCapacity=8192 MB;
+        networkBandwidth=1000 Mbps;
+        }
+        vnfManager:Vnfmanager;
+        nfvo:Nfvo;
     connections allowunconnected:
         for i=0..3 {
-            client[i].out --> firewall.in[i];
-            firewall.out[i] --> loadBalancer.clientIn[i];
-            loadBalancer.clientOut[i] --> firewall.inBack++;
-            firewall.outBack++--> client[i].in;
+//           client[i].out --> firewall.in[i];
+//           firewall.out[i] --> loadBalancer.clientIn[i];
+//          loadBalancer.clientOut[i] --> firewall.inBack++;
+//            firewall.outBack++--> client[i].in;
+			client[i].eth++ <--> centralSwitch.ethg++;
+        }
+//        Connect VNF manager to nfvo
+        nfvo.vnfMgrGate <--> vnfManager.nfvoGate;
+//        connect vnfmanager to nfvinodes
 
-        }
-        for j=0..1 {
-            loadBalancer.serverOut[j] --> server[j].in[0];
-            server[j].out[0] --> loadBalancer.serverIn[j];
-        }
+        vnfManager.nfviNodeGate++ <--> nfviNode1.managementGate;
+        vnfManager.nfviNodeGate++ <--> nfviNode2.managementGate;
+        
+       
+//        for j=0..1 {
+//            loadBalancer.serverOut[j] --> server[j].in[0];
+//            server[j].out[0] --> loadBalancer.serverIn[j];
+//        }
 
 
     

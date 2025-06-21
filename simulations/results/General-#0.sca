@@ -1,8 +1,8 @@
 version 3
-run General-0-20250618-20:59:34-12056
+run General-0-20250619-18:06:22-4952
 attr configname General
-attr datetime 20250618-20:59:34
-attr datetimef 20250618-205934
+attr datetime 20250619-18:06:22
+attr datetimef 20250619-180622
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
@@ -10,7 +10,7 @@ attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network nfv.Nfvservicechain
-attr processid 12056
+attr processid 4952
 attr repetition 0
 attr replication #0
 attr resultdir results

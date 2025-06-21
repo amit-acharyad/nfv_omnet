@@ -20,6 +20,12 @@ package nfv;
 //
 simple Firewall
 {
+    parameters:
+        double cpuConsumptionPerPacket @unit("MIPS");
+        double memoryConsumption @unit("MB");
+        double bandwidthConsumption @unit ("Mbps");
+        
+        
     gates:
         input in[4];
         output out[4];

@@ -17,7 +17,7 @@
 #include <omnetpp.h>
 #include <vector>
 #include <algorithm> // For std::min_element if you choose to use it
-#include "packet_m.h" // <--- ADD THIS LINE
+#include "messages/packet_m.h" // <--- ADD THIS LINE
 
 using namespace omnetpp;
 class Loadbalancer : public cSimpleModule

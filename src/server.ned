@@ -19,7 +19,12 @@ package nfv;
 // TODO auto-generated module
 //
 simple Server
-{
+{	
+    parameters:
+        double cpuConsumptionPerRequest @unit ("MIPS");
+        double memoryConsumption @unit("MB");
+        double bandwidthConsumption @unit("MIPS");
+        
     gates:
         input in[2];
         output out[2];
