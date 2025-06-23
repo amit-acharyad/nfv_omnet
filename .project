@@ -3,7 +3,6 @@
 	<name>omnet_nfv</name>
 	<comment></comment>
 	<projects>
-		<project>inet4.5</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

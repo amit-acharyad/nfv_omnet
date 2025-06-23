@@ -19,6 +19,7 @@
 #include "packet_m.h"
 #include "firewall.h"
 using namespace omnetpp;
+Define_Module(Firewall);
 
 void Firewall::handleMessage(cMessage *msg)  {
         // Cast to Packet (optional, but good for type awareness)
@@ -29,16 +30,15 @@ void Firewall::handleMessage(cMessage *msg)  {
 
         int gateIndex = msg->getArrivalGate()->getIndex();
         const char* gateName = msg->getArrivalGate()->getName();
-
+        EV<<"Firewall"<<getFullPath()<<":Received Paccket"<<endl;
+        //Simulate some delay
+        scheduleAt(simTime()+0.001,msg);
+        //real firewall will have filtering logic here
         if (strcmp(gateName, "in") == 0) {
             // From client side -> forward to LoadBalancer
-            EV << "Firewall: Forwarding from client (gate " << gateIndex << ") to LoadBalancer.\n";
+            EV << "Firewall Vnf  " << gateIndex << "forwarding  to NFVINODE.\n";
             send(msg, "out", gateIndex);
-        } else if (strcmp(gateName, "inBack") == 0) {
-            // From LoadBalancer/server -> forward back to client
-            EV << "Firewall: Forwarding from LoadBalancer (gate " << gateIndex << ") back to client.\n";
-            send(msg, "outBack", gateIndex);
-        } else {
+        }  else {
             EV << "Firewall: Unexpected gate: " << gateName << ", dropping message.\n";
             delete msg;
         }

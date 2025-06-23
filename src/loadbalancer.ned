@@ -26,9 +26,7 @@ simple Loadbalancer
         double bandwidthConsumption @unit("Mbps");
         
     gates:
-        input clientIn[4];
-        output clientOut[4];
-        input serverIn[2];
-        output serverOut[2];
+        input in;
+        output out;
 }
 

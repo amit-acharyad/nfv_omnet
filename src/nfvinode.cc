@@ -19,6 +19,7 @@
 #include "loadbalancer.h"
 #include "server.h"
 #include <cstring>
+#include "packet_m.h"
 
 Define_Module(Nfvinode);
 
@@ -42,7 +43,7 @@ void Nfvinode::handleMessage(cMessage *msg)
         delete msg;
         return;
     }
-
+    //Handle VNFDeployment requests
     if (auto req = dynamic_cast<VnfDeploymentRequest *>(msg)) {
         EV << "NFVINODE " << getId() << ": Received VNF Deployment Request for " << req->getVnfType()
            << " (ReqId: " << req->getRequestId() << ")" << endl;
@@ -58,12 +59,16 @@ void Nfvinode::handleMessage(cMessage *msg)
             cModuleType *vnfType = nullptr;
 
             if (strcmp(req->getVnfType(), "Firewall") == 0) {
-                vnfType = cModuleType::find("Firewall");
+                EV<<"Firewall Comp resulted TRUE"<<endl;
+                vnfType = cModuleType::find("omnet_nfv.Firewall");
             } else if (strcmp(req->getVnfType(), "Loadbalancer") == 0) {
-                vnfType = cModuleType::find("Loadbalancer");
+                EV<<"Loadbalcner Comp resulted TRUE"<<endl;
+
+                vnfType = cModuleType::find("omnet_nfv.Loadbalancer");
             } else if (strcmp(req->getVnfType(), "Server") == 0) {
-                vnfType = cModuleType::find("Server");
+                vnfType = cModuleType::find("omnet_nfv.Server");
             }
+            EV<<"The VNF type is"<<vnfType<<endl;
 
             if (vnfType) {
                 static int vnfIndex = 0;
@@ -97,10 +102,54 @@ void Nfvinode::handleMessage(cMessage *msg)
 
 
         send(resp, "managementGate$o");
+        delete msg;
+        return;
+    }
+    //Handle Data Plane Packets
+    Packet* packet=dynamic_cast<Packet*>(msg);
+    if(packet){
+        cGate *arrivalGate=msg->getArrivalGate();
+        EV<<"Arrival Gate for the pkt is "<<arrivalGate->getName()<<endl;
+        if(arrivalGate->isName("eth$i"))
+
+        {
+            EV<<"NFVINODE"<<getId()<<":Received data packet from external network."<<endl;
+                    cModule* targetVnf=nullptr;
+                    for (auto const& [name,module]:deployedVnfs){
+                        if(strcmp(module->getNedTypeName(),"Firewall")==0){
+                            targetVnf=module;
+                            break;
+                        }
+                    }
+                    if(targetVnf){
+                        send(packet,targetVnf->gate(0));
+                        EV<<"NFVINode"<<getId()<<":Forwarded to"<<targetVnf->getFullName()
+            <<endl;
+                    }else{
+                        EV<<"NFVI Node"<<getId()<<": No Suitable VNF founf to forward to dropping packet."<<endl;
+                        delete packet;
+                    }
+        }
+
+
+
+    else if(arrivalGate->getOwnerModule()!=this){
+        cModule *senderVnf =arrivalGate->getOwnerModule();
+        EV<<"NFVINODE"<<getId()<<": Received data packet from internal VNF: "<<senderVnf->getFullName()
+<<endl;
+        send (packet,"eth$o",0);
+        EV<<"NFVINODE "<<getId()<<": Forwarded packet from VNF to external network"<<endl;
+
+    }
+    else{
+        EV<<"NFVINOde "<<getId()<<": Received unhandled message type."<<endl;
+        delete msg;
     }
 
-    delete msg;
+    }
+
 }
+
 
 void Nfvinode::finish()
 {

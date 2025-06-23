@@ -31,12 +31,12 @@ class Server : public cSimpleModule
         }
 
         int arrivalGateIndex = msg->getArrivalGate()->getIndex();
-        EV << "Server[" << getIndex() << "]: Received request from LoadBalancer (gate "
-           << arrivalGateIndex << "). ClientGateId: " << requestPkt->getClientGateId() << "\n";
+        EV << "Server[" << getIndex() << "]: Received request from NFvi node (gate "
+           << arrivalGateIndex << "). NFVINOde: " << requestPkt->getClientGateId() << "\n";
 
         // Simulate some processing time if needed
-        // simtime_t processingTime = 0.01; // Example processing time
-        // scheduleAt(simTime() + processingTime, requestPkt); // If you want to delay and then send
+        simtime_t processingTime = 0.01; // Example processing time
+        scheduleAt(simTime() + processingTime, requestPkt); // If you want to delay and then send
 
         // For now, immediately create a response
         // Use the same packet for response if you only modify its content, or create a new one.
@@ -54,7 +54,7 @@ class Server : public cSimpleModule
         // In NfvServiceChain.ned, server[j].in[0] is connected to loadBalancer.serverOut[j]
         // So, we send back on server[j].out[0]
         EV << "Server[" << getIndex() << "]: Sending response back through gate "
-           << arrivalGateIndex << " for clientGateId: " << responsePkt->getClientGateId() << "\n";
+           << arrivalGateIndex << " for nfvinode: " << responsePkt->getClientGateId() << "\n";
         send(responsePkt, "out", arrivalGateIndex); // Using arrivalGateIndex (0) for output gate 0
     }
 };

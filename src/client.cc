@@ -15,7 +15,6 @@
 
 #include "client.h"
 #include "packet_m.h"
-
 Define_Module(Client);
 
 void Client::initialize() {
@@ -24,22 +23,28 @@ void Client::initialize() {
     sendEvent = new cMessage("sendEvent");
     scheduleAt(simTime() + sendInterval, sendEvent);
 }
+void Client::handleMessage(cMessage *msg)  {
+    if (msg->isSelfMessage()) {
+        Packet *req = new Packet("ClientRequest");
 
-void Client::handleMessage(cMessage *msg) {
-    if (msg == sendEvent) {
-        Packet *pkt = new Packet("Request");
-        EV << "Client sending packet\n";
-        send(pkt, "eth$o",0);
-    } else {
-        Packet *responsePkt = dynamic_cast<Packet*>(msg);
-        if (responsePkt) {
-            EV << "Client received response from gate ID: " << responsePkt->getClientGateId() << "\n";
-        } else {
-            EV << "Client received non-Packet response: " << msg->getName() << "\n";
-        }
+        // Specify gate index 0 explicitly
+        req->setClientGateId(gate("eth$o", 0)->getIndex());
+
+        EV << "Client sending Request with clientGateId=" << req->getClientGateId() << endl;
+
+        send(req, "eth$o", 0);
+        delete msg;
+    }
+    else if (auto req = dynamic_cast<Packet *>(msg)) {
+        EV << "Client received Request with clientGateId=" << req->getClientGateId() << endl;
+        delete req;
+    }
+    else {
+        EV << "Unknown message received. Discarding." << endl;
         delete msg;
     }
 }
+
 
 void Client::finish() {
     cancelAndDelete(sendEvent);

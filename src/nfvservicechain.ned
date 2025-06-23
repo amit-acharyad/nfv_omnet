@@ -15,7 +15,6 @@
 
 package omnet_nfv;
 
-import inet.node.inet.StandardHost;
 
 
 network Nfvservicechain
@@ -27,7 +26,9 @@ network Nfvservicechain
     
     submodules:
         client[4]: Client;
-        centralSwitch :StandardHost;
+        centralSwitch :PacketSwitch{
+        numPorts=4;
+        }
        // firewall: Firewall;
        // loadBalancer: Loadbalancer;
         //server[2]: Server;
@@ -52,7 +53,7 @@ network Nfvservicechain
 //           firewall.out[i] --> loadBalancer.clientIn[i];
 //          loadBalancer.clientOut[i] --> firewall.inBack++;
 //            firewall.outBack++--> client[i].in;
-			  client[i].eth++ <--> C <--> centralSwitch.ethg++;
+			  client[i].eth++ <--> C <--> centralSwitch.port++;
 			
         }
 //        Connect VNF manager to nfvo
@@ -63,10 +64,8 @@ network Nfvservicechain
         vnfManager.nfviNodeGate++ <--> nfviNode2.managementGate;
         
        
-//        for j=0..1 {
-//            loadBalancer.serverOut[j] --> server[j].in[0];
-//            server[j].out[0] --> loadBalancer.serverIn[j];
-//        }
+        nfviNode1.eth++ <--> centralSwitch.port++;
+        nfviNode2.eth++ <-->centralSwitch.port++;
 
 
     

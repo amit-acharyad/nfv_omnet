@@ -26,6 +26,6 @@ simple Server
         double bandwidthConsumption @unit("MIPS");
         
     gates:
-        input in[2];
-        output out[2];
+        input in;
+        output out;
 }

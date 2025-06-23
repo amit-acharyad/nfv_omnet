@@ -27,8 +27,7 @@ simple Firewall
         
         
     gates:
-        input in[4];
-        output out[4];
-        input inBack[4];
-        output outBack[4];
+        input in;
+        output out;
+       
 }

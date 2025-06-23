@@ -23,9 +23,6 @@
 #include "server.h"
 using namespace omnetpp;
 
-/**
- * TODO - Generated class
- */
 class Nfvinode : public cSimpleModule
 {
   protected:
@@ -37,6 +34,8 @@ class Nfvinode : public cSimpleModule
     double totalCpuCapacity;
     double totalMemoryCapacity;
     double totalNetworkBandwidth;
+
+    std::map<std:: string,cModule*> deployedVnfs;
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
     virtual void finish() override;

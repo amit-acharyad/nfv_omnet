@@ -23,71 +23,27 @@ using namespace omnetpp;
 Define_Module(Loadbalancer);
 
 void Loadbalancer::initialize() {
-    serverLoads = std::vector<int>(2, 0); // Assuming 2 servers
 }
 
-void Loadbalancer::handleMessage(cMessage *msg) {
-    int gateId = msg->getArrivalGate()->getIndex();
-    const char *gateName = msg->getArrivalGate()->getBaseName();
-
-    if (strcmp(gateName, "clientIn") == 0) {
-        EV << "LoadBalancer: Received request from client (gate " << gateId << ")\n";
-
+void Loadbalancer::handleMessage(cMessage *msg)  {
+        // Cast to Packet (optional, but good for type awareness)
         Packet *pkt = dynamic_cast<Packet*>(msg);
         if (!pkt) {
-            EV << "LoadBalancer: Received non-Packet message. Dropping.\n";
+            EV << "Loadbalancer received a non-Packet message, forwarding anyway: " << msg->getName() << "\n";
+        }
+
+        int gateIndex = msg->getArrivalGate()->getIndex();
+        const char* gateName = msg->getArrivalGate()->getName();
+        EV<<"Loadbalancer"<<getFullPath()<<":Received Paccket"<<endl;
+        //Simulate some delay
+        scheduleAt(simTime()+0.001,msg);
+        //real firewall will have filtering logic here
+        if (strcmp(gateName, "in") == 0) {
+            // From client side -> forward to LoadBalancer
+            EV << "Loadbalancer Vnf  " << gateIndex << "forwarding  to NFVINODE.\n";
+            send(msg, "out", gateIndex);
+        }  else {
+            EV << "Loadbalancer: Unexpected gate: " << gateName << ", dropping message.\n";
             delete msg;
-            return;
-        }
-
-        pkt->setClientGateId(gateId);
-
-        // Find least loaded server
-        int assignedServer = -1;
-        int minLoad = serverCapacity + 1;
-        for (int i = 0; i < serverLoads.size(); ++i) {
-            if (serverLoads[i] < minLoad) {
-                minLoad = serverLoads[i];
-                assignedServer = i;
-            }
-        }
-
-        if (assignedServer == -1 || serverLoads[assignedServer] >= serverCapacity) {
-            EV << "All servers busy. Dropping packet.\n";
-            delete pkt;
-            return;
-        }
-
-        serverLoads[assignedServer]++;
-        EV << "Forwarding to server[" << assignedServer << "], current load: " << serverLoads[assignedServer] << "\n";
-        send(pkt, "serverOut", assignedServer);
-    }
-    else if (strcmp(gateName, "serverIn") == 0) {
-        EV << "LoadBalancer: Received reply from server (gate " << gateId << ")\n";
-
-        Packet *pkt = dynamic_cast<Packet*>(msg);
-        if (!pkt) {
-            EV << "Received non-Packet reply. Dropping.\n";
-            delete msg;
-            return;
-        }
-
-        int clientGate = pkt->getClientGateId();
-
-        if (gateId >= 0 && gateId < serverLoads.size()) {
-            serverLoads[gateId]--;
-            EV << "Server[" << gateId << "] load decremented to " << serverLoads[gateId] << "\n";
-        }
-
-        if (clientGate >= 0 && clientGate < gateSize("clientOut")) {
-            send(pkt, "clientOut", clientGate);
-        } else {
-            EV << "Invalid clientGateId. Dropping packet.\n";
-            delete pkt;
         }
     }
-    else {
-        EV << "Unexpected gate: " << gateName << ", dropping message.\n";
-        delete msg;
-    }
-}
