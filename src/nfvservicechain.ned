@@ -18,55 +18,51 @@ package omnet_nfv;
 
 
 network Nfvservicechain
-{	
+{
+    parameters:
+        int numClients = default(4);
+        int numNfviNodes = default(2);
+        int centralSwitchPorts = default(numClients + numNfviNodes);
+
     types:
- channel C extends ned.DatarateChannel {
- datarate = 100Mbps;
- }
-    
+        channel C extends ned.DatarateChannel {
+            datarate = 100Mbps;
+        }
     submodules:
-        client[4]: Client;
-        centralSwitch :PacketSwitch{
-        numPorts=4;
+        client[numClients]: Client {
+            parameters:
+                clientId = index + 1;
+                targetVnfIp = 100; // Firewalls external IP
         }
-       // firewall: Firewall;
-       // loadBalancer: Loadbalancer;
-        //server[2]: Server;
-        nfviNode1:Nfvinode{
-        id=1;
-        cpuCapacity=10000 MIPS;
-        memoryCapacity=8192 MB;
-        networkBandwidth=1000 Mbps;
-        
+        centralSwitch: PacketSwitch {
+            parameters:
+                numPorts = parent.centralSwitchPorts;
         }
-        nfviNode2: Nfvinode{
-        id=2;
-        cpuCapacity=10000 MIPS;
-        memoryCapacity=8192 MB;
-        networkBandwidth=1000 Mbps;
+        nfviNode[numNfviNodes]: Nfvinode {
+            parameters:
+                dataPlaneIp = 10 + index;
+                cpuCapacity = 10000 MIPS;
+                memoryCapacity = 8192 MB;
+                networkBandwidth = 1000 Mbps;
         }
-        vnfManager:Vnfmanager;
-        nfvo:Nfvo;
+        vnfManager: Vnfmanager;
+        nfvo: Nfvo;
+
     connections allowunconnected:
-        for i=0..3 {
-//           client[i].out --> firewall.in[i];
-//           firewall.out[i] --> loadBalancer.clientIn[i];
-//          loadBalancer.clientOut[i] --> firewall.inBack++;
-//            firewall.outBack++--> client[i].in;
-			  client[i].eth++ <--> C <--> centralSwitch.port++;
-			
+        for i = 0..numClients - 1 {
+            client[i].eth <--> C <--> centralSwitch.port[i];
         }
-//        Connect VNF manager to nfvo
+
+        // Connect VNF manager to NFVO
         nfvo.vnfMgrGate <--> vnfManager.nfvoGate;
-//        connect vnfmanager to nfvinodes
 
-        vnfManager.nfviNodeGate++ <--> nfviNode1.managementGate;
-        vnfManager.nfviNodeGate++ <--> nfviNode2.managementGate;
-        
-       
-        nfviNode1.eth++ <--> centralSwitch.port++;
-        nfviNode2.eth++ <-->centralSwitch.port++;
+        // Connect VNF Manager to NFVI Nodes
+        for i = 0..numNfviNodes - 1 {
+            vnfManager.nfviNodeGate++ <--> nfviNode[i].managementGate;
+        }
 
-
-    
+        // Connect NFVI Nodes to central switch
+        for i = 0..numNfviNodes - 1 {
+            nfviNode[i].eth++ <--> C <--> centralSwitch.port[numClients + i];
+        }
 }

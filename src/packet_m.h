@@ -36,14 +36,18 @@ class Packet;
  * //
  * message Packet
  * {
- *     int clientGateId;
+ *     int sourceAddress;
+ *     int destinationAddress;
+ *   //  int sourcePort;
+ *  //   int destinationPort;
  * }
  * </pre>
  */
 class Packet : public ::omnetpp::cMessage
 {
   protected:
-    int clientGateId = 0;
+    int sourceAddress = 0;
+    int destinationAddress = 0;
 
   private:
     void copy(const Packet& other);
@@ -60,8 +64,11 @@ class Packet : public ::omnetpp::cMessage
     virtual void parsimPack(omnetpp::cCommBuffer *b) const override;
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
-    virtual int getClientGateId() const;
-    virtual void setClientGateId(int clientGateId);
+    virtual int getSourceAddress() const;
+    virtual void setSourceAddress(int sourceAddress);
+
+    virtual int getDestinationAddress() const;
+    virtual void setDestinationAddress(int destinationAddress);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const Packet& obj) {obj.parsimPack(b);}

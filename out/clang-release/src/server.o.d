@@ -1,6 +1,9 @@
 ../out/clang-release/src/server.o: server.cc \
-  C:/Users/Acer/Desktop/omnetpp-6.1/include/omnetpp.h packet_m.h
+  C:/Users/Acer/Desktop/omnetpp-6.1/include/omnetpp.h packet_m.h \
+  server.h
 
 C:/Users/Acer/Desktop/omnetpp-6.1/include/omnetpp.h:
 
 packet_m.h:
+
+server.h:

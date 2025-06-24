@@ -175,29 +175,42 @@ Packet& Packet::operator=(const Packet& other)
 
 void Packet::copy(const Packet& other)
 {
-    this->clientGateId = other.clientGateId;
+    this->sourceAddress = other.sourceAddress;
+    this->destinationAddress = other.destinationAddress;
 }
 
 void Packet::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cMessage::parsimPack(b);
-    doParsimPacking(b,this->clientGateId);
+    doParsimPacking(b,this->sourceAddress);
+    doParsimPacking(b,this->destinationAddress);
 }
 
 void Packet::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cMessage::parsimUnpack(b);
-    doParsimUnpacking(b,this->clientGateId);
+    doParsimUnpacking(b,this->sourceAddress);
+    doParsimUnpacking(b,this->destinationAddress);
 }
 
-int Packet::getClientGateId() const
+int Packet::getSourceAddress() const
 {
-    return this->clientGateId;
+    return this->sourceAddress;
 }
 
-void Packet::setClientGateId(int clientGateId)
+void Packet::setSourceAddress(int sourceAddress)
 {
-    this->clientGateId = clientGateId;
+    this->sourceAddress = sourceAddress;
+}
+
+int Packet::getDestinationAddress() const
+{
+    return this->destinationAddress;
+}
+
+void Packet::setDestinationAddress(int destinationAddress)
+{
+    this->destinationAddress = destinationAddress;
 }
 
 class PacketDescriptor : public omnetpp::cClassDescriptor
@@ -205,7 +218,8 @@ class PacketDescriptor : public omnetpp::cClassDescriptor
   private:
     mutable const char **propertyNames;
     enum FieldConstants {
-        FIELD_clientGateId,
+        FIELD_sourceAddress,
+        FIELD_destinationAddress,
     };
   public:
     PacketDescriptor();
@@ -272,7 +286,7 @@ const char *PacketDescriptor::getProperty(const char *propertyName) const
 int PacketDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 1+base->getFieldCount() : 1;
+    return base ? 2+base->getFieldCount() : 2;
 }
 
 unsigned int PacketDescriptor::getFieldTypeFlags(int field) const
@@ -284,9 +298,10 @@ unsigned int PacketDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_clientGateId
+        FD_ISEDITABLE,    // FIELD_sourceAddress
+        FD_ISEDITABLE,    // FIELD_destinationAddress
     };
-    return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
 }
 
 const char *PacketDescriptor::getFieldName(int field) const
@@ -298,16 +313,18 @@ const char *PacketDescriptor::getFieldName(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "clientGateId",
+        "sourceAddress",
+        "destinationAddress",
     };
-    return (field >= 0 && field < 1) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
 }
 
 int PacketDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
-    if (strcmp(fieldName, "clientGateId") == 0) return baseIndex + 0;
+    if (strcmp(fieldName, "sourceAddress") == 0) return baseIndex + 0;
+    if (strcmp(fieldName, "destinationAddress") == 0) return baseIndex + 1;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -320,9 +337,10 @@ const char *PacketDescriptor::getFieldTypeString(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_clientGateId
+        "int",    // FIELD_sourceAddress
+        "int",    // FIELD_destinationAddress
     };
-    return (field >= 0 && field < 1) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **PacketDescriptor::getFieldPropertyNames(int field) const
@@ -405,7 +423,8 @@ std::string PacketDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int
     }
     Packet *pp = omnetpp::fromAnyPtr<Packet>(object); (void)pp;
     switch (field) {
-        case FIELD_clientGateId: return long2string(pp->getClientGateId());
+        case FIELD_sourceAddress: return long2string(pp->getSourceAddress());
+        case FIELD_destinationAddress: return long2string(pp->getDestinationAddress());
         default: return "";
     }
 }
@@ -422,7 +441,8 @@ void PacketDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field,
     }
     Packet *pp = omnetpp::fromAnyPtr<Packet>(object); (void)pp;
     switch (field) {
-        case FIELD_clientGateId: pp->setClientGateId(string2long(value)); break;
+        case FIELD_sourceAddress: pp->setSourceAddress(string2long(value)); break;
+        case FIELD_destinationAddress: pp->setDestinationAddress(string2long(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Packet'", field);
     }
 }
@@ -437,7 +457,8 @@ omnetpp::cValue PacketDescriptor::getFieldValue(omnetpp::any_ptr object, int fie
     }
     Packet *pp = omnetpp::fromAnyPtr<Packet>(object); (void)pp;
     switch (field) {
-        case FIELD_clientGateId: return pp->getClientGateId();
+        case FIELD_sourceAddress: return pp->getSourceAddress();
+        case FIELD_destinationAddress: return pp->getDestinationAddress();
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'Packet' as cValue -- field index out of range?", field);
     }
 }
@@ -454,7 +475,8 @@ void PacketDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, 
     }
     Packet *pp = omnetpp::fromAnyPtr<Packet>(object); (void)pp;
     switch (field) {
-        case FIELD_clientGateId: pp->setClientGateId(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_sourceAddress: pp->setSourceAddress(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_destinationAddress: pp->setDestinationAddress(omnetpp::checked_int_cast<int>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Packet'", field);
     }
 }

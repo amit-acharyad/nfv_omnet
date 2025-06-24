@@ -13,5 +13,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 message Packet {
-    int clientGateId;
+// int protocol; //eg: 6 for TCP 17 UDP easy for firewall acitivites to block all UDP and allow TCP etc
+    
+    int sourceAddress;
+    int destinationAddress;
+  //  int sourcePort;
+ //   int destinationPort;
 }

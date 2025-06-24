@@ -23,8 +23,11 @@ simple Client
     parameters:
         double sendInterval @unit(s)=default(1s);
         int packetSize @unit(B)= default(1024B);
+        int clientId;//source Ip
+        int targetVnfIp;
+        
     gates:
-        inout eth[];
+        inout eth;
 }
 
 

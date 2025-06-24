@@ -1,8 +1,8 @@
 version 3
-run General-0-20250624-01:27:46-20268
+run General-0-20250624-23:57:31-9520
 attr configname General
-attr datetime 20250624-01:27:46
-attr datetimef 20250624-012746
+attr datetime 20250624-23:57:31
+attr datetimef 20250624-235731
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
@@ -10,7 +10,7 @@ attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network omnet_nfv.Nfvservicechain
-attr processid 20268
+attr processid 9520
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -19,18 +19,18 @@ attr seedset 0
 config network omnet_nfv.Nfvservicechain
 config sim-time-limit 10s
 
-par Nfvservicechain.client[0].eth$o[0].channel typename "\"omnet_nfv.Nfvservicechain.C\""
-par Nfvservicechain.client[0].eth$o[0].channel disabled false
+par Nfvservicechain.client[0].eth$o.channel typename "\"omnet_nfv.Nfvservicechain.C\""
+par Nfvservicechain.client[0].eth$o.channel disabled false
 attr mutable ""
-par Nfvservicechain.client[0].eth$o[0].channel delay 0s
+par Nfvservicechain.client[0].eth$o.channel delay 0s
 attr mutable ""
 attr unit s
-par Nfvservicechain.client[0].eth$o[0].channel datarate 1e+08bps
+par Nfvservicechain.client[0].eth$o.channel datarate 1e+08bps
 attr mutable ""
 attr unit bps
-par Nfvservicechain.client[0].eth$o[0].channel ber 0
+par Nfvservicechain.client[0].eth$o.channel ber 0
 attr mutable ""
-par Nfvservicechain.client[0].eth$o[0].channel per 0
+par Nfvservicechain.client[0].eth$o.channel per 0
 attr mutable ""
 par Nfvservicechain.centralSwitch.port$o[0].channel typename "\"omnet_nfv.Nfvservicechain.C\""
 par Nfvservicechain.centralSwitch.port$o[0].channel disabled false
@@ -45,18 +45,18 @@ par Nfvservicechain.centralSwitch.port$o[0].channel ber 0
 attr mutable ""
 par Nfvservicechain.centralSwitch.port$o[0].channel per 0
 attr mutable ""
-par Nfvservicechain.client[1].eth$o[0].channel typename "\"omnet_nfv.Nfvservicechain.C\""
-par Nfvservicechain.client[1].eth$o[0].channel disabled false
+par Nfvservicechain.client[1].eth$o.channel typename "\"omnet_nfv.Nfvservicechain.C\""
+par Nfvservicechain.client[1].eth$o.channel disabled false
 attr mutable ""
-par Nfvservicechain.client[1].eth$o[0].channel delay 0s
+par Nfvservicechain.client[1].eth$o.channel delay 0s
 attr mutable ""
 attr unit s
-par Nfvservicechain.client[1].eth$o[0].channel datarate 1e+08bps
+par Nfvservicechain.client[1].eth$o.channel datarate 1e+08bps
 attr mutable ""
 attr unit bps
-par Nfvservicechain.client[1].eth$o[0].channel ber 0
+par Nfvservicechain.client[1].eth$o.channel ber 0
 attr mutable ""
-par Nfvservicechain.client[1].eth$o[0].channel per 0
+par Nfvservicechain.client[1].eth$o.channel per 0
 attr mutable ""
 par Nfvservicechain.centralSwitch.port$o[1].channel typename "\"omnet_nfv.Nfvservicechain.C\""
 par Nfvservicechain.centralSwitch.port$o[1].channel disabled false
@@ -71,18 +71,18 @@ par Nfvservicechain.centralSwitch.port$o[1].channel ber 0
 attr mutable ""
 par Nfvservicechain.centralSwitch.port$o[1].channel per 0
 attr mutable ""
-par Nfvservicechain.client[2].eth$o[0].channel typename "\"omnet_nfv.Nfvservicechain.C\""
-par Nfvservicechain.client[2].eth$o[0].channel disabled false
+par Nfvservicechain.client[2].eth$o.channel typename "\"omnet_nfv.Nfvservicechain.C\""
+par Nfvservicechain.client[2].eth$o.channel disabled false
 attr mutable ""
-par Nfvservicechain.client[2].eth$o[0].channel delay 0s
+par Nfvservicechain.client[2].eth$o.channel delay 0s
 attr mutable ""
 attr unit s
-par Nfvservicechain.client[2].eth$o[0].channel datarate 1e+08bps
+par Nfvservicechain.client[2].eth$o.channel datarate 1e+08bps
 attr mutable ""
 attr unit bps
-par Nfvservicechain.client[2].eth$o[0].channel ber 0
+par Nfvservicechain.client[2].eth$o.channel ber 0
 attr mutable ""
-par Nfvservicechain.client[2].eth$o[0].channel per 0
+par Nfvservicechain.client[2].eth$o.channel per 0
 attr mutable ""
 par Nfvservicechain.centralSwitch.port$o[2].channel typename "\"omnet_nfv.Nfvservicechain.C\""
 par Nfvservicechain.centralSwitch.port$o[2].channel disabled false
@@ -97,18 +97,20 @@ par Nfvservicechain.centralSwitch.port$o[2].channel ber 0
 attr mutable ""
 par Nfvservicechain.centralSwitch.port$o[2].channel per 0
 attr mutable ""
-par Nfvservicechain.client[3].eth$o[0].channel typename "\"omnet_nfv.Nfvservicechain.C\""
-par Nfvservicechain.client[3].eth$o[0].channel disabled false
+par Nfvservicechain.client[3].eth$o.channel typename "\"omnet_nfv.Nfvservicechain.C\""
+par Nfvservicechain.client[3].eth$o.channel disabled false
 attr mutable ""
-par Nfvservicechain.client[3].eth$o[0].channel delay 0s
+par Nfvservicechain.client[3].eth$o.channel delay 0s
 attr mutable ""
 attr unit s
-par Nfvservicechain.client[3].eth$o[0].channel datarate 1e+08bps
+par Nfvservicechain.client[3].eth$o.channel datarate 1e+08bps
 attr mutable ""
 attr unit bps
-par Nfvservicechain.client[3].eth$o[0].channel ber 0
+par Nfvservicechain.client[3].eth$o.channel ber 0
 attr mutable ""
-par Nfvservicechain.client[3].eth$o[0].channel per 0
+par Nfvservicechain.client[3].eth$o.channel per 0
 attr mutable ""
 par Nfvservicechain.centralSwitch.port$o[3].channel typename "\"omnet_nfv.Nfvservicechain.C\""
-par Nfvservicechain.cen
+par Nfvservicechain.centralSwitch.port$o[3].channel disabled false
+attr mutable ""
+par Nfvservice

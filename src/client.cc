@@ -27,16 +27,12 @@ void Client::handleMessage(cMessage *msg)  {
     if (msg->isSelfMessage()) {
         Packet *req = new Packet("ClientRequest");
 
-        // Specify gate index 0 explicitly
-        req->setClientGateId(gate("eth$o", 0)->getIndex());
 
-        EV << "Client sending Request with clientGateId=" << req->getClientGateId() << endl;
 
-        send(req, "eth$o", 0);
+        send(req, "eth$o");
         delete msg;
     }
     else if (auto req = dynamic_cast<Packet *>(msg)) {
-        EV << "Client received Request with clientGateId=" << req->getClientGateId() << endl;
         delete req;
     }
     else {

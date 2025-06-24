@@ -21,6 +21,7 @@ package omnet_nfv;
 simple Server
 {	
     parameters:
+        int myIpAddress;
         double cpuConsumptionPerRequest @unit ("MIPS");
         double memoryConsumption @unit("MB");
         double bandwidthConsumption @unit("MIPS");

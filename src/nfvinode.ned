@@ -22,9 +22,11 @@ simple Nfvinode
 {
     parameters:
         int id;
+        int dataPlaneIp;
         double cpuCapacity @unit ("MIPS");
         double memoryCapacity @unit ("MB");
         double networkBandwidth @unit ("Mbps");
+        
    gates:
        inout eth[];
        inout managementGate;

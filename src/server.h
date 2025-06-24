@@ -20,14 +20,14 @@
 
 using namespace omnetpp;
 
-/**
- * TODO - Generated class
- */
+
 class Server : public cSimpleModule
 {
   protected:
+    int myIpAddress;
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
+    virtual void finish()override;
 };
 
 #endif
