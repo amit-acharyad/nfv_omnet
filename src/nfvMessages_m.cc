@@ -471,6 +471,8 @@ void NfvMessageDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, i
     }
 }
 
+Register_Enum(VnfType, (VnfType::VNF_TYPE_UNKNOWN, VnfType::VNF_TYPE_FIREWALL, VnfType::VNF_TYPE_LOADBALANCER, VnfType::VNF_TYPE_SERVER));
+
 Register_Class(VnfDeploymentRequest)
 
 VnfDeploymentRequest::VnfDeploymentRequest(const char *name, short kind) : ::NfvMessage(name, kind)
@@ -484,6 +486,7 @@ VnfDeploymentRequest::VnfDeploymentRequest(const VnfDeploymentRequest& other) : 
 
 VnfDeploymentRequest::~VnfDeploymentRequest()
 {
+    delete [] this->backendServerIps;
 }
 
 VnfDeploymentRequest& VnfDeploymentRequest::operator=(const VnfDeploymentRequest& other)
@@ -496,71 +499,76 @@ VnfDeploymentRequest& VnfDeploymentRequest::operator=(const VnfDeploymentRequest
 
 void VnfDeploymentRequest::copy(const VnfDeploymentRequest& other)
 {
+    this->vnfName = other.vnfName;
     this->vnfType = other.vnfType;
-    this->requiredCpu = other.requiredCpu;
-    this->requiredMemory = other.requiredMemory;
-    this->requiredBandwidth = other.requiredBandwidth;
     this->requestId = other.requestId;
+    this->cpuRequest = other.cpuRequest;
+    this->memoryRequest = other.memoryRequest;
+    this->bandwidthRequest = other.bandwidthRequest;
+    this->vnfIpAddress = other.vnfIpAddress;
+    this->firewallLbVip = other.firewallLbVip;
+    delete [] this->backendServerIps;
+    this->backendServerIps = (other.backendServerIps_arraysize==0) ? nullptr : new int[other.backendServerIps_arraysize];
+    backendServerIps_arraysize = other.backendServerIps_arraysize;
+    for (size_t i = 0; i < backendServerIps_arraysize; i++) {
+        this->backendServerIps[i] = other.backendServerIps[i];
+    }
 }
 
 void VnfDeploymentRequest::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::NfvMessage::parsimPack(b);
+    doParsimPacking(b,this->vnfName);
     doParsimPacking(b,this->vnfType);
-    doParsimPacking(b,this->requiredCpu);
-    doParsimPacking(b,this->requiredMemory);
-    doParsimPacking(b,this->requiredBandwidth);
     doParsimPacking(b,this->requestId);
+    doParsimPacking(b,this->cpuRequest);
+    doParsimPacking(b,this->memoryRequest);
+    doParsimPacking(b,this->bandwidthRequest);
+    doParsimPacking(b,this->vnfIpAddress);
+    doParsimPacking(b,this->firewallLbVip);
+    b->pack(backendServerIps_arraysize);
+    doParsimArrayPacking(b,this->backendServerIps,backendServerIps_arraysize);
 }
 
 void VnfDeploymentRequest::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::NfvMessage::parsimUnpack(b);
+    doParsimUnpacking(b,this->vnfName);
     doParsimUnpacking(b,this->vnfType);
-    doParsimUnpacking(b,this->requiredCpu);
-    doParsimUnpacking(b,this->requiredMemory);
-    doParsimUnpacking(b,this->requiredBandwidth);
     doParsimUnpacking(b,this->requestId);
+    doParsimUnpacking(b,this->cpuRequest);
+    doParsimUnpacking(b,this->memoryRequest);
+    doParsimUnpacking(b,this->bandwidthRequest);
+    doParsimUnpacking(b,this->vnfIpAddress);
+    doParsimUnpacking(b,this->firewallLbVip);
+    delete [] this->backendServerIps;
+    b->unpack(backendServerIps_arraysize);
+    if (backendServerIps_arraysize == 0) {
+        this->backendServerIps = nullptr;
+    } else {
+        this->backendServerIps = new int[backendServerIps_arraysize];
+        doParsimArrayUnpacking(b,this->backendServerIps,backendServerIps_arraysize);
+    }
 }
 
-const char * VnfDeploymentRequest::getVnfType() const
+const char * VnfDeploymentRequest::getVnfName() const
 {
-    return this->vnfType.c_str();
+    return this->vnfName.c_str();
 }
 
-void VnfDeploymentRequest::setVnfType(const char * vnfType)
+void VnfDeploymentRequest::setVnfName(const char * vnfName)
+{
+    this->vnfName = vnfName;
+}
+
+VnfType VnfDeploymentRequest::getVnfType() const
+{
+    return this->vnfType;
+}
+
+void VnfDeploymentRequest::setVnfType(VnfType vnfType)
 {
     this->vnfType = vnfType;
-}
-
-double VnfDeploymentRequest::getRequiredCpu() const
-{
-    return this->requiredCpu;
-}
-
-void VnfDeploymentRequest::setRequiredCpu(double requiredCpu)
-{
-    this->requiredCpu = requiredCpu;
-}
-
-double VnfDeploymentRequest::getRequiredMemory() const
-{
-    return this->requiredMemory;
-}
-
-void VnfDeploymentRequest::setRequiredMemory(double requiredMemory)
-{
-    this->requiredMemory = requiredMemory;
-}
-
-double VnfDeploymentRequest::getRequiredBandwidth() const
-{
-    return this->requiredBandwidth;
-}
-
-void VnfDeploymentRequest::setRequiredBandwidth(double requiredBandwidth)
-{
-    this->requiredBandwidth = requiredBandwidth;
 }
 
 int VnfDeploymentRequest::getRequestId() const
@@ -573,16 +581,136 @@ void VnfDeploymentRequest::setRequestId(int requestId)
     this->requestId = requestId;
 }
 
+double VnfDeploymentRequest::getCpuRequest() const
+{
+    return this->cpuRequest;
+}
+
+void VnfDeploymentRequest::setCpuRequest(double cpuRequest)
+{
+    this->cpuRequest = cpuRequest;
+}
+
+double VnfDeploymentRequest::getMemoryRequest() const
+{
+    return this->memoryRequest;
+}
+
+void VnfDeploymentRequest::setMemoryRequest(double memoryRequest)
+{
+    this->memoryRequest = memoryRequest;
+}
+
+double VnfDeploymentRequest::getBandwidthRequest() const
+{
+    return this->bandwidthRequest;
+}
+
+void VnfDeploymentRequest::setBandwidthRequest(double bandwidthRequest)
+{
+    this->bandwidthRequest = bandwidthRequest;
+}
+
+int VnfDeploymentRequest::getVnfIpAddress() const
+{
+    return this->vnfIpAddress;
+}
+
+void VnfDeploymentRequest::setVnfIpAddress(int vnfIpAddress)
+{
+    this->vnfIpAddress = vnfIpAddress;
+}
+
+int VnfDeploymentRequest::getFirewallLbVip() const
+{
+    return this->firewallLbVip;
+}
+
+void VnfDeploymentRequest::setFirewallLbVip(int firewallLbVip)
+{
+    this->firewallLbVip = firewallLbVip;
+}
+
+size_t VnfDeploymentRequest::getBackendServerIpsArraySize() const
+{
+    return backendServerIps_arraysize;
+}
+
+int VnfDeploymentRequest::getBackendServerIps(size_t k) const
+{
+    if (k >= backendServerIps_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)backendServerIps_arraysize, (unsigned long)k);
+    return this->backendServerIps[k];
+}
+
+void VnfDeploymentRequest::setBackendServerIpsArraySize(size_t newSize)
+{
+    int *backendServerIps2 = (newSize==0) ? nullptr : new int[newSize];
+    size_t minSize = backendServerIps_arraysize < newSize ? backendServerIps_arraysize : newSize;
+    for (size_t i = 0; i < minSize; i++)
+        backendServerIps2[i] = this->backendServerIps[i];
+    for (size_t i = minSize; i < newSize; i++)
+        backendServerIps2[i] = 0;
+    delete [] this->backendServerIps;
+    this->backendServerIps = backendServerIps2;
+    backendServerIps_arraysize = newSize;
+}
+
+void VnfDeploymentRequest::setBackendServerIps(size_t k, int backendServerIps)
+{
+    if (k >= backendServerIps_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)backendServerIps_arraysize, (unsigned long)k);
+    this->backendServerIps[k] = backendServerIps;
+}
+
+void VnfDeploymentRequest::insertBackendServerIps(size_t k, int backendServerIps)
+{
+    if (k > backendServerIps_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)backendServerIps_arraysize, (unsigned long)k);
+    size_t newSize = backendServerIps_arraysize + 1;
+    int *backendServerIps2 = new int[newSize];
+    size_t i;
+    for (i = 0; i < k; i++)
+        backendServerIps2[i] = this->backendServerIps[i];
+    backendServerIps2[k] = backendServerIps;
+    for (i = k + 1; i < newSize; i++)
+        backendServerIps2[i] = this->backendServerIps[i-1];
+    delete [] this->backendServerIps;
+    this->backendServerIps = backendServerIps2;
+    backendServerIps_arraysize = newSize;
+}
+
+void VnfDeploymentRequest::appendBackendServerIps(int backendServerIps)
+{
+    insertBackendServerIps(backendServerIps_arraysize, backendServerIps);
+}
+
+void VnfDeploymentRequest::eraseBackendServerIps(size_t k)
+{
+    if (k >= backendServerIps_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)backendServerIps_arraysize, (unsigned long)k);
+    size_t newSize = backendServerIps_arraysize - 1;
+    int *backendServerIps2 = (newSize == 0) ? nullptr : new int[newSize];
+    size_t i;
+    for (i = 0; i < k; i++)
+        backendServerIps2[i] = this->backendServerIps[i];
+    for (i = k; i < newSize; i++)
+        backendServerIps2[i] = this->backendServerIps[i+1];
+    delete [] this->backendServerIps;
+    this->backendServerIps = backendServerIps2;
+    backendServerIps_arraysize = newSize;
+}
+
 class VnfDeploymentRequestDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
     enum FieldConstants {
+        FIELD_vnfName,
         FIELD_vnfType,
-        FIELD_requiredCpu,
-        FIELD_requiredMemory,
-        FIELD_requiredBandwidth,
         FIELD_requestId,
+        FIELD_cpuRequest,
+        FIELD_memoryRequest,
+        FIELD_bandwidthRequest,
+        FIELD_vnfIpAddress,
+        FIELD_firewallLbVip,
+        FIELD_backendServerIps,
     };
   public:
     VnfDeploymentRequestDescriptor();
@@ -649,7 +777,7 @@ const char *VnfDeploymentRequestDescriptor::getProperty(const char *propertyName
 int VnfDeploymentRequestDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 5+base->getFieldCount() : 5;
+    return base ? 9+base->getFieldCount() : 9;
 }
 
 unsigned int VnfDeploymentRequestDescriptor::getFieldTypeFlags(int field) const
@@ -661,13 +789,17 @@ unsigned int VnfDeploymentRequestDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_vnfType
-        FD_ISEDITABLE,    // FIELD_requiredCpu
-        FD_ISEDITABLE,    // FIELD_requiredMemory
-        FD_ISEDITABLE,    // FIELD_requiredBandwidth
+        FD_ISEDITABLE,    // FIELD_vnfName
+        0,    // FIELD_vnfType
         FD_ISEDITABLE,    // FIELD_requestId
+        FD_ISEDITABLE,    // FIELD_cpuRequest
+        FD_ISEDITABLE,    // FIELD_memoryRequest
+        FD_ISEDITABLE,    // FIELD_bandwidthRequest
+        FD_ISEDITABLE,    // FIELD_vnfIpAddress
+        FD_ISEDITABLE,    // FIELD_firewallLbVip
+        FD_ISARRAY | FD_ISEDITABLE | FD_ISRESIZABLE,    // FIELD_backendServerIps
     };
-    return (field >= 0 && field < 5) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 9) ? fieldTypeFlags[field] : 0;
 }
 
 const char *VnfDeploymentRequestDescriptor::getFieldName(int field) const
@@ -679,24 +811,32 @@ const char *VnfDeploymentRequestDescriptor::getFieldName(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldNames[] = {
+        "vnfName",
         "vnfType",
-        "requiredCpu",
-        "requiredMemory",
-        "requiredBandwidth",
         "requestId",
+        "cpuRequest",
+        "memoryRequest",
+        "bandwidthRequest",
+        "vnfIpAddress",
+        "firewallLbVip",
+        "backendServerIps",
     };
-    return (field >= 0 && field < 5) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 9) ? fieldNames[field] : nullptr;
 }
 
 int VnfDeploymentRequestDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
-    if (strcmp(fieldName, "vnfType") == 0) return baseIndex + 0;
-    if (strcmp(fieldName, "requiredCpu") == 0) return baseIndex + 1;
-    if (strcmp(fieldName, "requiredMemory") == 0) return baseIndex + 2;
-    if (strcmp(fieldName, "requiredBandwidth") == 0) return baseIndex + 3;
-    if (strcmp(fieldName, "requestId") == 0) return baseIndex + 4;
+    if (strcmp(fieldName, "vnfName") == 0) return baseIndex + 0;
+    if (strcmp(fieldName, "vnfType") == 0) return baseIndex + 1;
+    if (strcmp(fieldName, "requestId") == 0) return baseIndex + 2;
+    if (strcmp(fieldName, "cpuRequest") == 0) return baseIndex + 3;
+    if (strcmp(fieldName, "memoryRequest") == 0) return baseIndex + 4;
+    if (strcmp(fieldName, "bandwidthRequest") == 0) return baseIndex + 5;
+    if (strcmp(fieldName, "vnfIpAddress") == 0) return baseIndex + 6;
+    if (strcmp(fieldName, "firewallLbVip") == 0) return baseIndex + 7;
+    if (strcmp(fieldName, "backendServerIps") == 0) return baseIndex + 8;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -709,13 +849,17 @@ const char *VnfDeploymentRequestDescriptor::getFieldTypeString(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "string",    // FIELD_vnfType
-        "double",    // FIELD_requiredCpu
-        "double",    // FIELD_requiredMemory
-        "double",    // FIELD_requiredBandwidth
+        "string",    // FIELD_vnfName
+        "VnfType",    // FIELD_vnfType
         "int",    // FIELD_requestId
+        "double",    // FIELD_cpuRequest
+        "double",    // FIELD_memoryRequest
+        "double",    // FIELD_bandwidthRequest
+        "int",    // FIELD_vnfIpAddress
+        "int",    // FIELD_firewallLbVip
+        "int",    // FIELD_backendServerIps
     };
-    return (field >= 0 && field < 5) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 9) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **VnfDeploymentRequestDescriptor::getFieldPropertyNames(int field) const
@@ -727,6 +871,10 @@ const char **VnfDeploymentRequestDescriptor::getFieldPropertyNames(int field) co
         field -= base->getFieldCount();
     }
     switch (field) {
+        case FIELD_vnfType: {
+            static const char *names[] = { "enum",  nullptr };
+            return names;
+        }
         default: return nullptr;
     }
 }
@@ -740,6 +888,9 @@ const char *VnfDeploymentRequestDescriptor::getFieldProperty(int field, const ch
         field -= base->getFieldCount();
     }
     switch (field) {
+        case FIELD_vnfType:
+            if (!strcmp(propertyName, "enum")) return "VnfType";
+            return nullptr;
         default: return nullptr;
     }
 }
@@ -754,6 +905,7 @@ int VnfDeploymentRequestDescriptor::getFieldArraySize(omnetpp::any_ptr object, i
     }
     VnfDeploymentRequest *pp = omnetpp::fromAnyPtr<VnfDeploymentRequest>(object); (void)pp;
     switch (field) {
+        case FIELD_backendServerIps: return pp->getBackendServerIpsArraySize();
         default: return 0;
     }
 }
@@ -770,6 +922,7 @@ void VnfDeploymentRequestDescriptor::setFieldArraySize(omnetpp::any_ptr object, 
     }
     VnfDeploymentRequest *pp = omnetpp::fromAnyPtr<VnfDeploymentRequest>(object); (void)pp;
     switch (field) {
+        case FIELD_backendServerIps: pp->setBackendServerIpsArraySize(size); break;
         default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'VnfDeploymentRequest'", field);
     }
 }
@@ -798,11 +951,15 @@ std::string VnfDeploymentRequestDescriptor::getFieldValueAsString(omnetpp::any_p
     }
     VnfDeploymentRequest *pp = omnetpp::fromAnyPtr<VnfDeploymentRequest>(object); (void)pp;
     switch (field) {
-        case FIELD_vnfType: return oppstring2string(pp->getVnfType());
-        case FIELD_requiredCpu: return double2string(pp->getRequiredCpu());
-        case FIELD_requiredMemory: return double2string(pp->getRequiredMemory());
-        case FIELD_requiredBandwidth: return double2string(pp->getRequiredBandwidth());
+        case FIELD_vnfName: return oppstring2string(pp->getVnfName());
+        case FIELD_vnfType: return enum2string(pp->getVnfType(), "VnfType");
         case FIELD_requestId: return long2string(pp->getRequestId());
+        case FIELD_cpuRequest: return double2string(pp->getCpuRequest());
+        case FIELD_memoryRequest: return double2string(pp->getMemoryRequest());
+        case FIELD_bandwidthRequest: return double2string(pp->getBandwidthRequest());
+        case FIELD_vnfIpAddress: return long2string(pp->getVnfIpAddress());
+        case FIELD_firewallLbVip: return long2string(pp->getFirewallLbVip());
+        case FIELD_backendServerIps: return long2string(pp->getBackendServerIps(i));
         default: return "";
     }
 }
@@ -819,11 +976,14 @@ void VnfDeploymentRequestDescriptor::setFieldValueAsString(omnetpp::any_ptr obje
     }
     VnfDeploymentRequest *pp = omnetpp::fromAnyPtr<VnfDeploymentRequest>(object); (void)pp;
     switch (field) {
-        case FIELD_vnfType: pp->setVnfType((value)); break;
-        case FIELD_requiredCpu: pp->setRequiredCpu(string2double(value)); break;
-        case FIELD_requiredMemory: pp->setRequiredMemory(string2double(value)); break;
-        case FIELD_requiredBandwidth: pp->setRequiredBandwidth(string2double(value)); break;
+        case FIELD_vnfName: pp->setVnfName((value)); break;
         case FIELD_requestId: pp->setRequestId(string2long(value)); break;
+        case FIELD_cpuRequest: pp->setCpuRequest(string2double(value)); break;
+        case FIELD_memoryRequest: pp->setMemoryRequest(string2double(value)); break;
+        case FIELD_bandwidthRequest: pp->setBandwidthRequest(string2double(value)); break;
+        case FIELD_vnfIpAddress: pp->setVnfIpAddress(string2long(value)); break;
+        case FIELD_firewallLbVip: pp->setFirewallLbVip(string2long(value)); break;
+        case FIELD_backendServerIps: pp->setBackendServerIps(i,string2long(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'VnfDeploymentRequest'", field);
     }
 }
@@ -838,11 +998,15 @@ omnetpp::cValue VnfDeploymentRequestDescriptor::getFieldValue(omnetpp::any_ptr o
     }
     VnfDeploymentRequest *pp = omnetpp::fromAnyPtr<VnfDeploymentRequest>(object); (void)pp;
     switch (field) {
-        case FIELD_vnfType: return pp->getVnfType();
-        case FIELD_requiredCpu: return pp->getRequiredCpu();
-        case FIELD_requiredMemory: return pp->getRequiredMemory();
-        case FIELD_requiredBandwidth: return pp->getRequiredBandwidth();
+        case FIELD_vnfName: return pp->getVnfName();
+        case FIELD_vnfType: return static_cast<int>(pp->getVnfType());
         case FIELD_requestId: return pp->getRequestId();
+        case FIELD_cpuRequest: return pp->getCpuRequest();
+        case FIELD_memoryRequest: return pp->getMemoryRequest();
+        case FIELD_bandwidthRequest: return pp->getBandwidthRequest();
+        case FIELD_vnfIpAddress: return pp->getVnfIpAddress();
+        case FIELD_firewallLbVip: return pp->getFirewallLbVip();
+        case FIELD_backendServerIps: return pp->getBackendServerIps(i);
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'VnfDeploymentRequest' as cValue -- field index out of range?", field);
     }
 }
@@ -859,11 +1023,14 @@ void VnfDeploymentRequestDescriptor::setFieldValue(omnetpp::any_ptr object, int 
     }
     VnfDeploymentRequest *pp = omnetpp::fromAnyPtr<VnfDeploymentRequest>(object); (void)pp;
     switch (field) {
-        case FIELD_vnfType: pp->setVnfType(value.stringValue()); break;
-        case FIELD_requiredCpu: pp->setRequiredCpu(value.doubleValue()); break;
-        case FIELD_requiredMemory: pp->setRequiredMemory(value.doubleValue()); break;
-        case FIELD_requiredBandwidth: pp->setRequiredBandwidth(value.doubleValue()); break;
+        case FIELD_vnfName: pp->setVnfName(value.stringValue()); break;
         case FIELD_requestId: pp->setRequestId(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_cpuRequest: pp->setCpuRequest(value.doubleValue()); break;
+        case FIELD_memoryRequest: pp->setMemoryRequest(value.doubleValue()); break;
+        case FIELD_bandwidthRequest: pp->setBandwidthRequest(value.doubleValue()); break;
+        case FIELD_vnfIpAddress: pp->setVnfIpAddress(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_firewallLbVip: pp->setFirewallLbVip(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_backendServerIps: pp->setBackendServerIps(i,omnetpp::checked_int_cast<int>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'VnfDeploymentRequest'", field);
     }
 }
@@ -938,9 +1105,9 @@ void VnfDeploymentResponse::copy(const VnfDeploymentResponse& other)
 {
     this->requestId = other.requestId;
     this->success = other.success;
-    this->deploymentId = other.deploymentId;
-    this->errorMessage = other.errorMessage;
-    this->nfviNodeId = other.nfviNodeId;
+    this->vnfName = other.vnfName;
+    this->infoMessage = other.infoMessage;
+    this->deployedVnfIp = other.deployedVnfIp;
 }
 
 void VnfDeploymentResponse::parsimPack(omnetpp::cCommBuffer *b) const
@@ -948,9 +1115,9 @@ void VnfDeploymentResponse::parsimPack(omnetpp::cCommBuffer *b) const
     ::NfvMessage::parsimPack(b);
     doParsimPacking(b,this->requestId);
     doParsimPacking(b,this->success);
-    doParsimPacking(b,this->deploymentId);
-    doParsimPacking(b,this->errorMessage);
-    doParsimPacking(b,this->nfviNodeId);
+    doParsimPacking(b,this->vnfName);
+    doParsimPacking(b,this->infoMessage);
+    doParsimPacking(b,this->deployedVnfIp);
 }
 
 void VnfDeploymentResponse::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -958,9 +1125,9 @@ void VnfDeploymentResponse::parsimUnpack(omnetpp::cCommBuffer *b)
     ::NfvMessage::parsimUnpack(b);
     doParsimUnpacking(b,this->requestId);
     doParsimUnpacking(b,this->success);
-    doParsimUnpacking(b,this->deploymentId);
-    doParsimUnpacking(b,this->errorMessage);
-    doParsimUnpacking(b,this->nfviNodeId);
+    doParsimUnpacking(b,this->vnfName);
+    doParsimUnpacking(b,this->infoMessage);
+    doParsimUnpacking(b,this->deployedVnfIp);
 }
 
 int VnfDeploymentResponse::getRequestId() const
@@ -983,34 +1150,34 @@ void VnfDeploymentResponse::setSuccess(bool success)
     this->success = success;
 }
 
-const char * VnfDeploymentResponse::getDeploymentId() const
+const char * VnfDeploymentResponse::getVnfName() const
 {
-    return this->deploymentId.c_str();
+    return this->vnfName.c_str();
 }
 
-void VnfDeploymentResponse::setDeploymentId(const char * deploymentId)
+void VnfDeploymentResponse::setVnfName(const char * vnfName)
 {
-    this->deploymentId = deploymentId;
+    this->vnfName = vnfName;
 }
 
-const char * VnfDeploymentResponse::getErrorMessage() const
+const char * VnfDeploymentResponse::getInfoMessage() const
 {
-    return this->errorMessage.c_str();
+    return this->infoMessage.c_str();
 }
 
-void VnfDeploymentResponse::setErrorMessage(const char * errorMessage)
+void VnfDeploymentResponse::setInfoMessage(const char * infoMessage)
 {
-    this->errorMessage = errorMessage;
+    this->infoMessage = infoMessage;
 }
 
-int VnfDeploymentResponse::getNfviNodeId() const
+int VnfDeploymentResponse::getDeployedVnfIp() const
 {
-    return this->nfviNodeId;
+    return this->deployedVnfIp;
 }
 
-void VnfDeploymentResponse::setNfviNodeId(int nfviNodeId)
+void VnfDeploymentResponse::setDeployedVnfIp(int deployedVnfIp)
 {
-    this->nfviNodeId = nfviNodeId;
+    this->deployedVnfIp = deployedVnfIp;
 }
 
 class VnfDeploymentResponseDescriptor : public omnetpp::cClassDescriptor
@@ -1020,9 +1187,9 @@ class VnfDeploymentResponseDescriptor : public omnetpp::cClassDescriptor
     enum FieldConstants {
         FIELD_requestId,
         FIELD_success,
-        FIELD_deploymentId,
-        FIELD_errorMessage,
-        FIELD_nfviNodeId,
+        FIELD_vnfName,
+        FIELD_infoMessage,
+        FIELD_deployedVnfIp,
     };
   public:
     VnfDeploymentResponseDescriptor();
@@ -1103,9 +1270,9 @@ unsigned int VnfDeploymentResponseDescriptor::getFieldTypeFlags(int field) const
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,    // FIELD_requestId
         FD_ISEDITABLE,    // FIELD_success
-        FD_ISEDITABLE,    // FIELD_deploymentId
-        FD_ISEDITABLE,    // FIELD_errorMessage
-        FD_ISEDITABLE,    // FIELD_nfviNodeId
+        FD_ISEDITABLE,    // FIELD_vnfName
+        FD_ISEDITABLE,    // FIELD_infoMessage
+        FD_ISEDITABLE,    // FIELD_deployedVnfIp
     };
     return (field >= 0 && field < 5) ? fieldTypeFlags[field] : 0;
 }
@@ -1121,9 +1288,9 @@ const char *VnfDeploymentResponseDescriptor::getFieldName(int field) const
     static const char *fieldNames[] = {
         "requestId",
         "success",
-        "deploymentId",
-        "errorMessage",
-        "nfviNodeId",
+        "vnfName",
+        "infoMessage",
+        "deployedVnfIp",
     };
     return (field >= 0 && field < 5) ? fieldNames[field] : nullptr;
 }
@@ -1134,9 +1301,9 @@ int VnfDeploymentResponseDescriptor::findField(const char *fieldName) const
     int baseIndex = base ? base->getFieldCount() : 0;
     if (strcmp(fieldName, "requestId") == 0) return baseIndex + 0;
     if (strcmp(fieldName, "success") == 0) return baseIndex + 1;
-    if (strcmp(fieldName, "deploymentId") == 0) return baseIndex + 2;
-    if (strcmp(fieldName, "errorMessage") == 0) return baseIndex + 3;
-    if (strcmp(fieldName, "nfviNodeId") == 0) return baseIndex + 4;
+    if (strcmp(fieldName, "vnfName") == 0) return baseIndex + 2;
+    if (strcmp(fieldName, "infoMessage") == 0) return baseIndex + 3;
+    if (strcmp(fieldName, "deployedVnfIp") == 0) return baseIndex + 4;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -1151,9 +1318,9 @@ const char *VnfDeploymentResponseDescriptor::getFieldTypeString(int field) const
     static const char *fieldTypeStrings[] = {
         "int",    // FIELD_requestId
         "bool",    // FIELD_success
-        "string",    // FIELD_deploymentId
-        "string",    // FIELD_errorMessage
-        "int",    // FIELD_nfviNodeId
+        "string",    // FIELD_vnfName
+        "string",    // FIELD_infoMessage
+        "int",    // FIELD_deployedVnfIp
     };
     return (field >= 0 && field < 5) ? fieldTypeStrings[field] : nullptr;
 }
@@ -1240,9 +1407,9 @@ std::string VnfDeploymentResponseDescriptor::getFieldValueAsString(omnetpp::any_
     switch (field) {
         case FIELD_requestId: return long2string(pp->getRequestId());
         case FIELD_success: return bool2string(pp->getSuccess());
-        case FIELD_deploymentId: return oppstring2string(pp->getDeploymentId());
-        case FIELD_errorMessage: return oppstring2string(pp->getErrorMessage());
-        case FIELD_nfviNodeId: return long2string(pp->getNfviNodeId());
+        case FIELD_vnfName: return oppstring2string(pp->getVnfName());
+        case FIELD_infoMessage: return oppstring2string(pp->getInfoMessage());
+        case FIELD_deployedVnfIp: return long2string(pp->getDeployedVnfIp());
         default: return "";
     }
 }
@@ -1261,9 +1428,9 @@ void VnfDeploymentResponseDescriptor::setFieldValueAsString(omnetpp::any_ptr obj
     switch (field) {
         case FIELD_requestId: pp->setRequestId(string2long(value)); break;
         case FIELD_success: pp->setSuccess(string2bool(value)); break;
-        case FIELD_deploymentId: pp->setDeploymentId((value)); break;
-        case FIELD_errorMessage: pp->setErrorMessage((value)); break;
-        case FIELD_nfviNodeId: pp->setNfviNodeId(string2long(value)); break;
+        case FIELD_vnfName: pp->setVnfName((value)); break;
+        case FIELD_infoMessage: pp->setInfoMessage((value)); break;
+        case FIELD_deployedVnfIp: pp->setDeployedVnfIp(string2long(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'VnfDeploymentResponse'", field);
     }
 }
@@ -1280,9 +1447,9 @@ omnetpp::cValue VnfDeploymentResponseDescriptor::getFieldValue(omnetpp::any_ptr 
     switch (field) {
         case FIELD_requestId: return pp->getRequestId();
         case FIELD_success: return pp->getSuccess();
-        case FIELD_deploymentId: return pp->getDeploymentId();
-        case FIELD_errorMessage: return pp->getErrorMessage();
-        case FIELD_nfviNodeId: return pp->getNfviNodeId();
+        case FIELD_vnfName: return pp->getVnfName();
+        case FIELD_infoMessage: return pp->getInfoMessage();
+        case FIELD_deployedVnfIp: return pp->getDeployedVnfIp();
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'VnfDeploymentResponse' as cValue -- field index out of range?", field);
     }
 }
@@ -1301,9 +1468,9 @@ void VnfDeploymentResponseDescriptor::setFieldValue(omnetpp::any_ptr object, int
     switch (field) {
         case FIELD_requestId: pp->setRequestId(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_success: pp->setSuccess(value.boolValue()); break;
-        case FIELD_deploymentId: pp->setDeploymentId(value.stringValue()); break;
-        case FIELD_errorMessage: pp->setErrorMessage(value.stringValue()); break;
-        case FIELD_nfviNodeId: pp->setNfviNodeId(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_vnfName: pp->setVnfName(value.stringValue()); break;
+        case FIELD_infoMessage: pp->setInfoMessage(value.stringValue()); break;
+        case FIELD_deployedVnfIp: pp->setDeployedVnfIp(omnetpp::checked_int_cast<int>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'VnfDeploymentResponse'", field);
     }
 }

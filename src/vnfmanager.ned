@@ -21,6 +21,8 @@ package omnet_nfv;
 simple Vnfmanager
 {
     gates:
-        inout nfvoGate;
-        inout nfviNodeGate[];
+        input nfvoGateIn;
+        output nfvoGateOut;
+        input nfviNodeGateIn[];
+        output nfviNodeGateOut[];
 }

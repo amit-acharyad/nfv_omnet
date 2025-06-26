@@ -1,1 +1,0 @@
--O0 -Wall -glldb -fstandalone-debug   -MMD -MP -MF .d    -isystem /opt/mingw64/include -Wno-deprecated-register -Wno-unused-function -fno-omit-frame-pointer  -DOMNETPPLIBS_IMPORT -DINET_IMPORT  -I/c/Users/Acer/Desktop/omnetpp-6.1/include

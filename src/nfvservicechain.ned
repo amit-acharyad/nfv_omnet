@@ -31,8 +31,8 @@ network Nfvservicechain
     submodules:
         client[numClients]: Client {
             parameters:
-                clientId = index + 1;
-                targetVnfIp = 100; // Firewalls external IP
+                sourceAddress = index + 1;
+                destinationAddress = 10 +index%2; 
         }
         centralSwitch: PacketSwitch {
             parameters:
@@ -50,19 +50,28 @@ network Nfvservicechain
 
     connections allowunconnected:
         for i = 0..numClients - 1 {
-            client[i].eth <--> C <--> centralSwitch.port[i];
+            
+            client[i].ethOut --> C--> centralSwitch.portIn[i];
+            centralSwitch.portOut[i]-->C--> client[i].ethIn;
         }
 
         // Connect VNF manager to NFVO
-        nfvo.vnfMgrGate <--> vnfManager.nfvoGate;
+        
+        nfvo.vnfMgrGateOut-->vnfManager.nfvoGateIn;
+        vnfManager.nfvoGateOut -->nfvo.vnfMgrGateIn;
 
         // Connect VNF Manager to NFVI Nodes
         for i = 0..numNfviNodes - 1 {
-            vnfManager.nfviNodeGate++ <--> nfviNode[i].managementGate;
+            
+            
+            vnfManager.nfviNodeGateOut++ --> nfviNode[i].managementGateIn;
+            nfviNode[i].managementGateOut --> vnfManager.nfviNodeGateIn++;
         }
 
         // Connect NFVI Nodes to central switch
         for i = 0..numNfviNodes - 1 {
-            nfviNode[i].eth++ <--> C <--> centralSwitch.port[numClients + i];
+           nfviNode[i].ethOut++ --> C --> centralSwitch.portIn[numClients+i];
+           centralSwitch.portOut[numClients+i] --> C--> nfviNode[i].ethIn++;
+           
         }
 }

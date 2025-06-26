@@ -24,6 +24,8 @@ class PacketSwitch : public cSimpleModule
 {
   protected:
     int numPorts;
+    std::map<int, int> ipToPort;
+  protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
 };

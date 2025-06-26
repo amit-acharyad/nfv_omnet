@@ -18,15 +18,30 @@
 
 #include <omnetpp.h>
 #include "nfvMessages_m.h"
+#include "packet_m.h"
 #include "firewall.h"
 #include "loadbalancer.h"
 #include "server.h"
+#include <map>
+#include <string>
+#include <vector>
 using namespace omnetpp;
+
+// Structure to track deployed VNFs internally for routing and management
+// Structure to track deployed VNFs internally for routing and management
+struct DeployedVnfModule {
+    std::string name;       // Name of the VNF instance
+    VnfType type;           // Type of the VNF (e.g., VNF_TYPE_FIREWALL)
+    int ipAddress;          // The IP address assigned to this VNF
+    cModule* moduleRef;     // Pointer to the actual VNF module instance
+};
+
 
 class Nfvinode : public cSimpleModule
 {
   protected:
     //Current available resources
+    int dataPlaneIp;
     double availableCpu;
     double availableMemory;
     double availableBandwidth;
@@ -35,10 +50,16 @@ class Nfvinode : public cSimpleModule
     double totalMemoryCapacity;
     double totalNetworkBandwidth;
 
-    std::map<std:: string,cModule*> deployedVnfs;
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
-    virtual void finish() override;
+    int vnfIdCounter;
+
+    std::map<int, DeployedVnfModule> deployedVnfsByIp;
+        // Map VNF name to VNF info (for management plane)
+        std::map<std::string, DeployedVnfModule> deployedVnfsByName;
+  protected:
+        virtual void initialize() override;
+            virtual void handleMessage(cMessage *msg) override;
+            virtual void handleVnfDeploymentRequest(VnfDeploymentRequest *req); // New handler
+            virtual void handleDataPacket(Packet *packet, cGate *arrivalGate); // New handler for clarity
 };
 
 #endif

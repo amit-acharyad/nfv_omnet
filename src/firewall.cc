@@ -28,24 +28,20 @@ void Firewall::handleMessage(cMessage *msg)  {
             EV << "Firewall received a non-Packet message, forwarding anyway: " << msg->getName() << "\n";
         }
 
-        int gateIndex = msg->getArrivalGate()->getIndex();
-        const char* gateName = msg->getArrivalGate()->getName();
-        EV<<"Firewall"<<getFullPath()<<":Received Paccket"<<endl;
+
         //Simulate some delay
         scheduleAt(simTime()+0.001,msg);
-        //real firewall will have filtering logic here
-        if (strcmp(gateName, "in") == 0) {
-            // From client side -> forward to LoadBalancer
-            EV << "Firewall Vnf  " << gateIndex << "forwarding  to NFVINODE.\n";
-            send(msg, "out", gateIndex);
-        }  else {
-            EV << "Firewall: Unexpected gate: " << gateName << ", dropping message.\n";
-            delete msg;
-        }
+        pkt->setDestinationAddress(loadBalancerVIP);//Redirect to load baalncer VNF
+        EV<<"Firewall redirected packet to loadbalancer VIP"<<loadBalancerVIP<<endl;
+        send(pkt,"out");
+
     }
 
 
 void Firewall::initialize(){
+    EV<<"Firewall: Initialied"<<endl;
+    loadBalancerVIP=par("loadBalancerVIP").intValue();
+    EV<<"Firewall: COnfigure with loadbalancer VIP:"<<loadBalancerVIP<<endl;
 
 }
 

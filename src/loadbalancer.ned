@@ -18,15 +18,20 @@ package omnet_nfv;
 //
 // TODO auto-generated module
 //
-simple Loadbalancer
+simple Loadbalancer extends Vnfbase
 {
     parameters:
-        double cpuConsumptionPerPacket @unit("MIPS");
-        double memoryConsumption @unit("MB");
-        double bandwidthConsumption @unit("Mbps");
+        string serverIPs = default("") @mutable;  // Comma-separated list of backend server IPs
+        int myIpAddress @mutable;
+        double cpuConsumptionPerPacket @unit("MIPS") @immutable;
+        double memoryConsumption @unit("MB") @immutable;
+        double bandwidthConsumption @unit("Mbps")@immutable;
         
     gates:
         input in;
+        input inServer;
+        
         output out;
+        output outServer;
 }
 

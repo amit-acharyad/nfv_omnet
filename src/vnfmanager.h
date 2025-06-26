@@ -18,19 +18,44 @@
 
 #include <omnetpp.h>
 #include "nfvMessages_m.h"
+#include <map>
+#include <vector>
 using namespace omnetpp;
 
-/**
- * TODO - Generated class
- */
+struct DeployedVnfInfo{
+    std::string name;
+    VnfType type;
+    int ipAddress;
+    int nfviNodeId;
+};
 class Vnfmanager : public cSimpleModule
 {
   protected:
-    int nextRequestedId;
+    int numNfviNodes;
+    int nextVnfIp;
+    // Data structures for managing deployments
+       std::vector<int> nfviNodeIds; // To store IDs of connected NFVINodes
+       std::map<std::string, DeployedVnfInfo> deployedVnfs; // Map VNF name to its info
+       struct VnfDeploymentConfig {
+               VnfType type;
+               std::string name;
+               double cpu;
+               double mem;
+               double bw;
+               // Add other config needed specific to this type for deployment
+           };
+           std::vector<VnfDeploymentConfig> serviceChainBlueprint;
+           std::vector<int>serverVnfIPs;
 
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
-    virtual void finish()override;
+
+           virtual void initialize() override;
+               virtual void handleMessage(cMessage *msg) override;
+               virtual void handleSelfMessage(cMessage *msg); // New method for self-messages
+               virtual void deployServiceChain(); // New method to encapsulate deployment logic
+               virtual void finish() override;
+  public:
+               cGate *nfvoGate;
+               cGate *nfviNodeGate;
 };
 
 #endif

@@ -26,6 +26,7 @@ using namespace omnetpp;
 class Firewall : public cSimpleModule
 {
   protected:
+    int loadBalancerVIP;//parameter for load balancer virtual IP
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
 };

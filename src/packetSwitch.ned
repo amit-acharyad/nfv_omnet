@@ -23,5 +23,6 @@ simple PacketSwitch
     parameters:
         int numPorts;
     gates:
-        inout port[numPorts];  // vector of bidirectional gates for clients
+        input portIn[numPorts];  
+        output portOut[numPorts];
 }

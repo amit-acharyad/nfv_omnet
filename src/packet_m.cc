@@ -177,6 +177,7 @@ void Packet::copy(const Packet& other)
 {
     this->sourceAddress = other.sourceAddress;
     this->destinationAddress = other.destinationAddress;
+    this->isRegistration_ = other.isRegistration_;
 }
 
 void Packet::parsimPack(omnetpp::cCommBuffer *b) const
@@ -184,6 +185,7 @@ void Packet::parsimPack(omnetpp::cCommBuffer *b) const
     ::omnetpp::cMessage::parsimPack(b);
     doParsimPacking(b,this->sourceAddress);
     doParsimPacking(b,this->destinationAddress);
+    doParsimPacking(b,this->isRegistration_);
 }
 
 void Packet::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -191,6 +193,7 @@ void Packet::parsimUnpack(omnetpp::cCommBuffer *b)
     ::omnetpp::cMessage::parsimUnpack(b);
     doParsimUnpacking(b,this->sourceAddress);
     doParsimUnpacking(b,this->destinationAddress);
+    doParsimUnpacking(b,this->isRegistration_);
 }
 
 int Packet::getSourceAddress() const
@@ -213,6 +216,16 @@ void Packet::setDestinationAddress(int destinationAddress)
     this->destinationAddress = destinationAddress;
 }
 
+bool Packet::isRegistration() const
+{
+    return this->isRegistration_;
+}
+
+void Packet::setIsRegistration(bool isRegistration)
+{
+    this->isRegistration_ = isRegistration;
+}
+
 class PacketDescriptor : public omnetpp::cClassDescriptor
 {
   private:
@@ -220,6 +233,7 @@ class PacketDescriptor : public omnetpp::cClassDescriptor
     enum FieldConstants {
         FIELD_sourceAddress,
         FIELD_destinationAddress,
+        FIELD_isRegistration,
     };
   public:
     PacketDescriptor();
@@ -286,7 +300,7 @@ const char *PacketDescriptor::getProperty(const char *propertyName) const
 int PacketDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 2+base->getFieldCount() : 2;
+    return base ? 3+base->getFieldCount() : 3;
 }
 
 unsigned int PacketDescriptor::getFieldTypeFlags(int field) const
@@ -300,8 +314,9 @@ unsigned int PacketDescriptor::getFieldTypeFlags(int field) const
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,    // FIELD_sourceAddress
         FD_ISEDITABLE,    // FIELD_destinationAddress
+        FD_ISEDITABLE,    // FIELD_isRegistration
     };
-    return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
 }
 
 const char *PacketDescriptor::getFieldName(int field) const
@@ -315,8 +330,9 @@ const char *PacketDescriptor::getFieldName(int field) const
     static const char *fieldNames[] = {
         "sourceAddress",
         "destinationAddress",
+        "isRegistration",
     };
-    return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 3) ? fieldNames[field] : nullptr;
 }
 
 int PacketDescriptor::findField(const char *fieldName) const
@@ -325,6 +341,7 @@ int PacketDescriptor::findField(const char *fieldName) const
     int baseIndex = base ? base->getFieldCount() : 0;
     if (strcmp(fieldName, "sourceAddress") == 0) return baseIndex + 0;
     if (strcmp(fieldName, "destinationAddress") == 0) return baseIndex + 1;
+    if (strcmp(fieldName, "isRegistration") == 0) return baseIndex + 2;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -339,8 +356,9 @@ const char *PacketDescriptor::getFieldTypeString(int field) const
     static const char *fieldTypeStrings[] = {
         "int",    // FIELD_sourceAddress
         "int",    // FIELD_destinationAddress
+        "bool",    // FIELD_isRegistration
     };
-    return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 3) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **PacketDescriptor::getFieldPropertyNames(int field) const
@@ -425,6 +443,7 @@ std::string PacketDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int
     switch (field) {
         case FIELD_sourceAddress: return long2string(pp->getSourceAddress());
         case FIELD_destinationAddress: return long2string(pp->getDestinationAddress());
+        case FIELD_isRegistration: return bool2string(pp->isRegistration());
         default: return "";
     }
 }
@@ -443,6 +462,7 @@ void PacketDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field,
     switch (field) {
         case FIELD_sourceAddress: pp->setSourceAddress(string2long(value)); break;
         case FIELD_destinationAddress: pp->setDestinationAddress(string2long(value)); break;
+        case FIELD_isRegistration: pp->setIsRegistration(string2bool(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Packet'", field);
     }
 }
@@ -459,6 +479,7 @@ omnetpp::cValue PacketDescriptor::getFieldValue(omnetpp::any_ptr object, int fie
     switch (field) {
         case FIELD_sourceAddress: return pp->getSourceAddress();
         case FIELD_destinationAddress: return pp->getDestinationAddress();
+        case FIELD_isRegistration: return pp->isRegistration();
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'Packet' as cValue -- field index out of range?", field);
     }
 }
@@ -477,6 +498,7 @@ void PacketDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, 
     switch (field) {
         case FIELD_sourceAddress: pp->setSourceAddress(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_destinationAddress: pp->setDestinationAddress(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_isRegistration: pp->setIsRegistration(value.boolValue()); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Packet'", field);
     }
 }

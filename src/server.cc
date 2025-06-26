@@ -26,6 +26,8 @@ void Server::initialize()
     // Get its own IP address from parameters (set by VnfManager/NFVINode)
     myIpAddress = par("myIpAddress").intValue();
     EV << "WebServerVNF: My IP is: " << myIpAddress << endl;
+    EV << "BUILD ID: Version 20250626\n";
+
 }
 
 void Server::handleMessage(cMessage *msg)

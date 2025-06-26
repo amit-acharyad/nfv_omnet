@@ -22,13 +22,15 @@ using namespace omnetpp;
 
 class Loadbalancer : public cSimpleModule
 {
-  private:
-    int serverCapacity = 2; // Max concurrent requests per server
-    std::vector<int> serverLoads;
+
+
 
   protected:
+    std::vector<int> serverIPs;//list of servervnfs
+    int currentServerIndex;
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
+    virtual void finish()override;
 };
 
 #endif

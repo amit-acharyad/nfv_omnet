@@ -18,9 +18,11 @@ package omnet_nfv;
 //
 // TODO auto-generated module
 //
-simple Firewall
+simple Firewall extends Vnfbase
 {
     parameters:
+        int loadBalancerVIP @mutable;
+        int myIpAddress @mutable;
         double cpuConsumptionPerPacket @unit("MIPS");
         double memoryConsumption @unit("MB");
         double bandwidthConsumption @unit ("Mbps");
@@ -28,6 +30,9 @@ simple Firewall
         
     gates:
         input in;
+        input inLB;
         output out;
+        output outLB;
+        
        
 }

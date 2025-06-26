@@ -18,27 +18,27 @@
 Define_Module(Client);
 
 void Client::initialize() {
-    sendInterval = par("sendInterval");
-    packetSize = par("packetSize");
-    sendEvent = new cMessage("sendEvent");
-    scheduleAt(simTime() + sendInterval, sendEvent);
+
+    int sourceAddress=par("sourceAddress");
+    Packet *reg = new Packet("Register");
+
+        reg->setSourceAddress(sourceAddress);  // assuming you have this param
+        reg->setIsRegistration(true);
+        send(reg, "ethOut");
+        sendEvent = new cMessage("sendEvent");
+        sendInterval=par("sendInterval");
+         scheduleAt(simTime() + sendInterval, sendEvent);  // send after 1s
 }
 void Client::handleMessage(cMessage *msg)  {
-    if (msg->isSelfMessage()) {
-        Packet *req = new Packet("ClientRequest");
+    EV<<"Client sending message ";
+    int sourceIp=par("sourceAddress");
+    int destinationIp=par("destinationAddress");
+        Packet *pkt = new Packet("Register");
+            pkt->setSourceAddress(sourceIp);  // assuming you have this param
+            pkt->setDestinationAddress(destinationIp);
+            pkt->setIsRegistration(false);
+            send(pkt, "ethOut");
 
-
-
-        send(req, "eth$o");
-        delete msg;
-    }
-    else if (auto req = dynamic_cast<Packet *>(msg)) {
-        delete req;
-    }
-    else {
-        EV << "Unknown message received. Discarding." << endl;
-        delete msg;
-    }
 }
 
 

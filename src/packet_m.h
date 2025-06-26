@@ -38,8 +38,8 @@ class Packet;
  * {
  *     int sourceAddress;
  *     int destinationAddress;
- *   //  int sourcePort;
- *  //   int destinationPort;
+ *     bool isRegistration = false;
+ * 
  * }
  * </pre>
  */
@@ -48,6 +48,7 @@ class Packet : public ::omnetpp::cMessage
   protected:
     int sourceAddress = 0;
     int destinationAddress = 0;
+    bool isRegistration_ = false;
 
   private:
     void copy(const Packet& other);
@@ -69,6 +70,9 @@ class Packet : public ::omnetpp::cMessage
 
     virtual int getDestinationAddress() const;
     virtual void setDestinationAddress(int destinationAddress);
+
+    virtual bool isRegistration() const;
+    virtual void setIsRegistration(bool isRegistration);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const Packet& obj) {obj.parsimPack(b);}

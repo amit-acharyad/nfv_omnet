@@ -65,26 +65,66 @@ inline void doParsimPacking(omnetpp::cCommBuffer *b, const NfvMessage& obj) {obj
 inline void doParsimUnpacking(omnetpp::cCommBuffer *b, NfvMessage& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>nfvMessages.msg:17</tt> by opp_msgtool.
+ * Enum generated from <tt>nfvMessages.msg:17</tt> by opp_msgtool.
+ * <pre>
+ * // Define VNF types using an enum for clarity
+ * enum VnfType
+ * {
+ *     VNF_TYPE_UNKNOWN = 0;
+ *     VNF_TYPE_FIREWALL = 1;
+ *     VNF_TYPE_LOADBALANCER = 2;
+ *     VNF_TYPE_SERVER = 3;
+ * }
+ * </pre>
+ */
+enum VnfType {
+    VNF_TYPE_UNKNOWN = 0,
+    VNF_TYPE_FIREWALL = 1,
+    VNF_TYPE_LOADBALANCER = 2,
+    VNF_TYPE_SERVER = 3
+};
+
+inline void doParsimPacking(omnetpp::cCommBuffer *b, const VnfType& e) { b->pack(static_cast<int>(e)); }
+inline void doParsimUnpacking(omnetpp::cCommBuffer *b, VnfType& e) { int n; b->unpack(n); e = static_cast<VnfType>(n); }
+
+/**
+ * Class generated from <tt>nfvMessages.msg:24</tt> by opp_msgtool.
  * <pre>
  * packet VnfDeploymentRequest extends NfvMessage
  * {
- *     string vnfType; //eg. firewall loadbalancer
- *     double requiredCpu;
- *     double requiredMemory;
- *     double requiredBandwidth;
- *     int requestId; // unique id for this deployment
+ *     string vnfName; // Name for the VNF instance (e.g., "myFirewall1")
+ *     VnfType vnfType; // New: The type of VNF to deploy (e.g., VNF_TYPE_FIREWALL)
+ *     int requestId;
+ *     // Resource requests (existing fields)
+ *     double cpuRequest;
+ *     double memoryRequest;
+ *     double bandwidthRequest;
+ * 
+ *     // New: IP address assigned to this VNF instance
+ *     int vnfIpAddress;
+ * 
+ *     // New: VNF-specific parameters (used conditionally based on vnfType)
+ *     // For Firewall: the IP of the Load Balancer it should forward to
+ *     int firewallLbVip = 0; // Initialize to 0, only relevant for Firewall
+ * 
+ *     // For LoadBalancer: the array of backend WebServerVNF IPs it manages
+ *     int backendServerIps[]; // This will be set for LoadBalancer deployments
  * }
  * </pre>
  */
 class VnfDeploymentRequest : public ::NfvMessage
 {
   protected:
-    omnetpp::opp_string vnfType;
-    double requiredCpu = 0;
-    double requiredMemory = 0;
-    double requiredBandwidth = 0;
+    omnetpp::opp_string vnfName;
+    VnfType vnfType = static_cast<VnfType>(-1);
     int requestId = 0;
+    double cpuRequest = 0;
+    double memoryRequest = 0;
+    double bandwidthRequest = 0;
+    int vnfIpAddress = 0;
+    int firewallLbVip = 0;
+    int *backendServerIps = nullptr;
+    size_t backendServerIps_arraysize = 0;
 
   private:
     void copy(const VnfDeploymentRequest& other);
@@ -101,35 +141,53 @@ class VnfDeploymentRequest : public ::NfvMessage
     virtual void parsimPack(omnetpp::cCommBuffer *b) const override;
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
-    virtual const char * getVnfType() const;
-    virtual void setVnfType(const char * vnfType);
+    virtual const char * getVnfName() const;
+    virtual void setVnfName(const char * vnfName);
 
-    virtual double getRequiredCpu() const;
-    virtual void setRequiredCpu(double requiredCpu);
-
-    virtual double getRequiredMemory() const;
-    virtual void setRequiredMemory(double requiredMemory);
-
-    virtual double getRequiredBandwidth() const;
-    virtual void setRequiredBandwidth(double requiredBandwidth);
+    virtual VnfType getVnfType() const;
+    virtual void setVnfType(VnfType vnfType);
 
     virtual int getRequestId() const;
     virtual void setRequestId(int requestId);
+
+    virtual double getCpuRequest() const;
+    virtual void setCpuRequest(double cpuRequest);
+
+    virtual double getMemoryRequest() const;
+    virtual void setMemoryRequest(double memoryRequest);
+
+    virtual double getBandwidthRequest() const;
+    virtual void setBandwidthRequest(double bandwidthRequest);
+
+    virtual int getVnfIpAddress() const;
+    virtual void setVnfIpAddress(int vnfIpAddress);
+
+    virtual int getFirewallLbVip() const;
+    virtual void setFirewallLbVip(int firewallLbVip);
+
+    virtual void setBackendServerIpsArraySize(size_t size);
+    virtual size_t getBackendServerIpsArraySize() const;
+    virtual int getBackendServerIps(size_t k) const;
+    virtual void setBackendServerIps(size_t k, int backendServerIps);
+    virtual void insertBackendServerIps(size_t k, int backendServerIps);
+    [[deprecated]] void insertBackendServerIps(int backendServerIps) {appendBackendServerIps(backendServerIps);}
+    virtual void appendBackendServerIps(int backendServerIps);
+    virtual void eraseBackendServerIps(size_t k);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const VnfDeploymentRequest& obj) {obj.parsimPack(b);}
 inline void doParsimUnpacking(omnetpp::cCommBuffer *b, VnfDeploymentRequest& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>nfvMessages.msg:25</tt> by opp_msgtool.
+ * Class generated from <tt>nfvMessages.msg:44</tt> by opp_msgtool.
  * <pre>
  * packet VnfDeploymentResponse extends NfvMessage
  * {
  *     int requestId; // reference to original request
  *     bool success;
- *     string deploymentId; //unique id of deployed Vnf instance
- *     string errorMessage; //reason for failure (if not successful)
- *     int nfviNodeId; // Id of the nfvi node that responded
+ *     string vnfName;
+ *     string infoMessage;
+ *     int deployedVnfIp;
  * 
  * }
  * </pre>
@@ -139,9 +197,9 @@ class VnfDeploymentResponse : public ::NfvMessage
   protected:
     int requestId = 0;
     bool success = false;
-    omnetpp::opp_string deploymentId;
-    omnetpp::opp_string errorMessage;
-    int nfviNodeId = 0;
+    omnetpp::opp_string vnfName;
+    omnetpp::opp_string infoMessage;
+    int deployedVnfIp = 0;
 
   private:
     void copy(const VnfDeploymentResponse& other);
@@ -164,14 +222,14 @@ class VnfDeploymentResponse : public ::NfvMessage
     virtual bool getSuccess() const;
     virtual void setSuccess(bool success);
 
-    virtual const char * getDeploymentId() const;
-    virtual void setDeploymentId(const char * deploymentId);
+    virtual const char * getVnfName() const;
+    virtual void setVnfName(const char * vnfName);
 
-    virtual const char * getErrorMessage() const;
-    virtual void setErrorMessage(const char * errorMessage);
+    virtual const char * getInfoMessage() const;
+    virtual void setInfoMessage(const char * infoMessage);
 
-    virtual int getNfviNodeId() const;
-    virtual void setNfviNodeId(int nfviNodeId);
+    virtual int getDeployedVnfIp() const;
+    virtual void setDeployedVnfIp(int deployedVnfIp);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const VnfDeploymentResponse& obj) {obj.parsimPack(b);}

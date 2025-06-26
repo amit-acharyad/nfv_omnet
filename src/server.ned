@@ -18,15 +18,16 @@ package omnet_nfv;
 //
 // TODO auto-generated module
 //
-simple Server
+simple Server extends Vnfbase
 {	
     parameters:
-        int myIpAddress;
+        int myIpAddress @mutable;
         double cpuConsumptionPerRequest @unit ("MIPS");
         double memoryConsumption @unit("MB");
         double bandwidthConsumption @unit("MIPS");
         
     gates:
         input in;
+        
         output out;
 }
