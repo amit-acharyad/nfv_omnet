@@ -35,14 +35,12 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 # Object files for local .cc, .msg and .sm files
 OBJS = \
     $O/client.o \
-    $O/emptyinout.o \
     $O/firewall.o \
     $O/loadbalancer.o \
     $O/nfvinode.o \
     $O/nfvo.o \
     $O/packetSwitch.o \
     $O/server.o \
-    $O/vnfbase.o \
     $O/vnfmanager.o \
     $O/nfvMessages_m.o \
     $O/packet_m.o

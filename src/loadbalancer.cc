@@ -17,7 +17,6 @@
 #include <vector>
 #include <algorithm> // For std::min_element if you choose to use it
 #include "loadbalancer.h"
-
 #include "packet_m.h" // <--- ADD THIS LINE
 using namespace omnetpp;
 Define_Module(Loadbalancer);
@@ -25,57 +24,54 @@ Define_Module(Loadbalancer);
 void Loadbalancer::initialize() {
     EV<<"LoadBalancer: Initialized."<<endl;
     currentServerIndex=0;
-
-    const char* ipListStr = par("serverIPs").stringValue();
-    cStringTokenizer tokenizer(ipListStr);
-    while (tokenizer.hasMoreTokens()) {
-        const char* token = tokenizer.nextToken();
-        serverIPs.push_back(atoi(token));
-    }
-
-
-
+    int serverCount=serverIPs.size();
 
     if (serverIPs.empty()) {
             EV_ERROR << "LoadBalancer: No backend server IPs configured! LoadBalancer will drop packets." << endl;
         } else {
-            EV << "LoadBalancer: Configured with " << serverIPs.size() << " backend servers." << endl;
+            EV << "LoadBalancer: Configured with " << serverCount << " backend servers." <<serverIPs.size()<< endl;
         }
 
 }
 
-void Loadbalancer::handleMessage(cMessage *msg)  {
-        // Cast to Packet (optional, but good for type awareness)
-        Packet *pkt = dynamic_cast<Packet*>(msg);
-        if (!pkt) {
-            EV << "Loadbalancer received a non-Packet message, Deleting " <<"\n";
-            delete msg;
-            return;
-        }
-        EV << "LoadBalancer: Received packet " << pkt->getName()
-               << " (Src: " << pkt->getSourceAddress()
-               << ", Dst: " << pkt->getDestinationAddress() << ")" << endl;
-
-            if (serverIPs.empty()) {
-                EV_ERROR << "LoadBalancer: No backend servers to forward to. Dropping packet." << endl;
-                delete pkt;
-                return;
-            }
-
-            // --- Load Balancing Logic (Round Robin) ---
-                int chosenServerIp = serverIPs[currentServerIndex];
-                currentServerIndex = (currentServerIndex + 1) % serverIPs.size(); // Move to next server
-
-                pkt->setDestinationAddress(chosenServerIp); // Redirect to chosen WebServerVNF
-                EV << "LoadBalancer: Redirected packet destination to WebServerVNF IP: " << chosenServerIp << endl;
-
-                // Assuming the LoadBalancer has an 'out' gate defined for chaining
-                send(pkt, "out"); // Send out to the next hop in the chain (chosen WebServerVNF)
-
-
-
+void Loadbalancer::handleMessage(cMessage *msg) {
+    Packet *pkt = dynamic_cast<Packet*>(msg);
+    if (!pkt) {
+        EV << "Loadbalancer received a non-Packet message, deleting.\n";
+        delete msg;
+        return;
     }
+
+    EV << "LoadBalancer: Received packet "
+       << pkt->getName()
+       << " (Src: " << pkt->getSourceAddress()
+       << ", Dst: " << pkt->getDestinationAddress() << ")" << endl;
+
+    if (serverIPs.empty()) {
+        EV_ERROR << "LoadBalancer: No backend servers to forward to. Dropping packet." << endl;
+        delete pkt;
+        return;
+    }
+    cGate* arrivalGate = msg->getArrivalGate();
+
+    if (arrivalGate->isName("inServer")) {
+        // handle response from server — maybe forward to firewall or client
+        send(pkt, "out");  // send to firewall
+        return;
+    }
+
+
+    int chosenServerIp = serverIPs[currentServerIndex];
+    int chosenGateIndex = currentServerIndex;  // same index assumed for outServer[]
+    currentServerIndex = (currentServerIndex + 1) % serverIPs.size();
+
+    pkt->setDestinationAddress(chosenServerIp);
+    EV << "LoadBalancer: Redirected packet to server IP: " << chosenServerIp
+       << ", sending via outServer[" << chosenGateIndex << "]\n";
+
+    send(pkt, "outServer", chosenGateIndex);
+}
+
 void Loadbalancer::finish()
 {
-    // Optional: report statistics
 }

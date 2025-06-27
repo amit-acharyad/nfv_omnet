@@ -18,10 +18,9 @@ package omnet_nfv;
 //
 // TODO auto-generated module
 //
-simple Loadbalancer extends Vnfbase
+simple Loadbalancer 
 {
     parameters:
-        string serverIPs = default("") @mutable;  // Comma-separated list of backend server IPs
         int myIpAddress @mutable;
         double cpuConsumptionPerPacket @unit("MIPS") @immutable;
         double memoryConsumption @unit("MB") @immutable;
@@ -29,9 +28,9 @@ simple Loadbalancer extends Vnfbase
         
     gates:
         input in;
-        input inServer;
+        input inServer[];
         
         output out;
-        output outServer;
+        output outServer[];
 }
 

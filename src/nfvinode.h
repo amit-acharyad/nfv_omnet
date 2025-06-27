@@ -25,6 +25,8 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <queue>
+
 using namespace omnetpp;
 
 // Structure to track deployed VNFs internally for routing and management
@@ -53,13 +55,16 @@ class Nfvinode : public cSimpleModule
     int vnfIdCounter;
 
     std::map<int, DeployedVnfModule> deployedVnfsByIp;
-        // Map VNF name to VNF info (for management plane)
-        std::map<std::string, DeployedVnfModule> deployedVnfsByName;
+    std::map<std::string, DeployedVnfModule> deployedVnfsByName;
+    bool internalConnectionsDone;
+    std::queue<Packet*> bufferedPackets;
+
   protected:
         virtual void initialize() override;
             virtual void handleMessage(cMessage *msg) override;
             virtual void handleVnfDeploymentRequest(VnfDeploymentRequest *req); // New handler
             virtual void handleDataPacket(Packet *packet, cGate *arrivalGate); // New handler for clarity
+            virtual void wireInternalServiceChain();
 };
 
 #endif

@@ -58,43 +58,40 @@ void Vnfmanager::handleMessage(cMessage *msg)
         handleSelfMessage(msg);
         return;
     }
+    if (auto resp = dynamic_cast<VnfDeploymentResponse*>(msg)) {
+           handleVnfDeploymentResponse(resp);
+       }
 
-    // Check if the message is a VnfDeploymentResponse
-    VnfDeploymentResponse* response = dynamic_cast<VnfDeploymentResponse*>(msg);
-    if (response) {
-        EV << "VnfManager: Received VNF Deployment Response for " << response->getVnfName()
-           << ". Success: " << (response->getSuccess() ? "true" : "false")
-           << ", Deployed IP: " << response->getDeployedVnfIp() << endl;
 
-        if (response->getSuccess()) {
-            DeployedVnfInfo info;
-            info.name = response->getVnfName();
-            info.ipAddress = response->getDeployedVnfIp();
-            // Need to figure out VNF type from original request or name,
-            // for simplicity, let's derive it or store it during request
-            // For now, type and nfviNodeId will be filled when we iterate through blueprint
-            deployedVnfs[info.name] = info;
-
-            // If a WebServerVNF was deployed, add its IP to our list for the LoadBalancer
-            // This is a simple way; for more complex scenarios, match by type/name
-            if (info.name.find("Server") != std::string::npos) { // Crude check for WebServerVNF
-                serverVnfIPs.push_back(info.ipAddress);
-                EV << "VnfManager: WebServerVNF IP " << info.ipAddress << " added to list." << endl;
-            }
-
-            // TODO: If this was the last expected response for a service chain,
-            // then inform the PacketSwitch about the service entry point (Firewall IP).
-            // This will be the next big step after getting deployment working.
-
-        } else {
-            EV_WARN << "VnfManager: VNF Deployment failed for " << response->getVnfName() << ": " << response->getInfoMessage() << endl;
-        }
-        delete response;
-    } else {
-        EV << "VnfManager: Received unhandled message: " << msg->getName() << endl;
-        delete msg;
-    }
 }
+
+void Vnfmanager::handleVnfDeploymentResponse(VnfDeploymentResponse *resp) {
+    if (resp->getSuccess()) {
+        EV << "VNFManager: Deployment succeeded for " << resp->getVnfName() << "\n";
+        ++receivedDeployments;
+
+        // Optional: store mapping of deployed VNFs
+    } else {
+        EV_WARN << "VNFManager: Deployment failed for " << resp->getVnfName()
+                << " Reason: " << resp->getInfoMessage() << "\n";
+    }
+    int expectedDeployments=serviceChainBlueprint.size();
+
+    if (receivedDeployments == expectedDeployments) {
+        EV << "All VNFs deployed successfully. Triggering service chain wiring...\n";
+              cMessage* wiringTrigger = new cMessage("TriggerServiceChainWiring");
+
+        send(wiringTrigger, "nfviNodeGateOut", 0);
+        // Send wiring trigger to each NFVINode (loop if multiple NFVINodes)
+//        for (int i = 0; i < numNfviNodes; ++i) {
+//            cMessage* wiringTrigger = new cMessage("TriggerServiceChainWiring");
+//            send(wiringTrigger, "nfviNodeGateOut", i);  // assumes vector gate
+//        }
+    }
+
+    delete resp;
+}
+
 
 void Vnfmanager::handleSelfMessage(cMessage *msg) {
     if (msg->getKind() == TRIGGER_DEPLOYMENT) {
@@ -108,7 +105,6 @@ void Vnfmanager::deployServiceChain() {
     // This logic assumes we deploy all VNFs to nfviNode[0] for simplicity first.
     // In a real scenario, NFVO would decide placement.
     int targetNfviNodeGateIndex = 0; // Assuming nfviNode[0] is connected to gate 0
-
     for (const auto& config : serviceChainBlueprint) {
         VnfDeploymentRequest *req = new VnfDeploymentRequest("VnfDeploymentRequest");
         req->setVnfName(config.name.c_str());
@@ -140,6 +136,8 @@ void Vnfmanager::deployServiceChain() {
 
         send(req, "nfviNodeGateOut", targetNfviNodeGateIndex);
         EV << "VnfManager: Sent deployment request for " << config.name << " to NFVINode[" << targetNfviNodeGateIndex << "]" << endl;
+
+
     }
 
 }

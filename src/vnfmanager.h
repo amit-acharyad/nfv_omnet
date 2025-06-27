@@ -46,6 +46,7 @@ class Vnfmanager : public cSimpleModule
            };
            std::vector<VnfDeploymentConfig> serviceChainBlueprint;
            std::vector<int>serverVnfIPs;
+           int receivedDeployments = 0;
 
 
            virtual void initialize() override;
@@ -53,6 +54,7 @@ class Vnfmanager : public cSimpleModule
                virtual void handleSelfMessage(cMessage *msg); // New method for self-messages
                virtual void deployServiceChain(); // New method to encapsulate deployment logic
                virtual void finish() override;
+               virtual void handleVnfDeploymentResponse(VnfDeploymentResponse *resp);
   public:
                cGate *nfvoGate;
                cGate *nfviNodeGate;

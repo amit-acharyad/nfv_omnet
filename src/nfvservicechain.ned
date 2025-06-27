@@ -32,7 +32,7 @@ network Nfvservicechain
         client[numClients]: Client {
             parameters:
                 sourceAddress = index + 1;
-                destinationAddress = 10 +index%2; 
+                destinationAddress = 10; 
         }
         centralSwitch: PacketSwitch {
             parameters:

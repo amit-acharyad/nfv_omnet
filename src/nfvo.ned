@@ -26,5 +26,6 @@ simple Nfvo
         
     gates:
         input vnfMgrGateIn;
+        
         output vnfMgrGateOut;
 }

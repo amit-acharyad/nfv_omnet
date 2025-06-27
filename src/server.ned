@@ -15,10 +15,7 @@
 
 package omnet_nfv;
 
-//
-// TODO auto-generated module
-//
-simple Server extends Vnfbase
+simple Server 
 {	
     parameters:
         int myIpAddress @mutable;

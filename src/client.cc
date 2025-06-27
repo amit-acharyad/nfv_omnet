@@ -30,14 +30,30 @@ void Client::initialize() {
          scheduleAt(simTime() + sendInterval, sendEvent);  // send after 1s
 }
 void Client::handleMessage(cMessage *msg)  {
-    EV<<"Client sending message ";
-    int sourceIp=par("sourceAddress");
-    int destinationIp=par("destinationAddress");
-        Packet *pkt = new Packet("Register");
-            pkt->setSourceAddress(sourceIp);  // assuming you have this param
-            pkt->setDestinationAddress(destinationIp);
-            pkt->setIsRegistration(false);
-            send(pkt, "ethOut");
+    if(msg->isSelfMessage()){
+        EV<<"Clinet sending request"<<endl;
+        Packet *req=new Packet("Client Request");
+        int sourceIp=par("sourceAddress");
+           int destinationIp=par("destinationAddress");
+           req->setSourceAddress(sourceIp);  // assuming you have this param
+               req->setDestinationAddress(destinationIp);
+               req->setIsRegistration(false);
+               send(req, "ethOut");
+
+    }
+    else if (auto pkt = dynamic_cast<Packet *>(msg)) {
+           // Received a packet from the network
+           EV << "Client received response: " << pkt->getName() <<"from"<< pkt->getSourceAddress()<< "\n";
+           delete pkt;
+       }
+       else {
+           EV_WARN << "Unknown message received, discarding.\n";
+           delete msg;
+       }
+
+
+
+
 
 }
 

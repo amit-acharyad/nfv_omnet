@@ -18,24 +18,27 @@
 #include <omnetpp.h>
 #include "packet_m.h"
 #include "firewall.h"
+#include <cstring>
 using namespace omnetpp;
 Define_Module(Firewall);
 
-void Firewall::handleMessage(cMessage *msg)  {
-        // Cast to Packet (optional, but good for type awareness)
-        Packet *pkt = dynamic_cast<Packet*>(msg);
-        if (!pkt) {
-            EV << "Firewall received a non-Packet message, forwarding anyway: " << msg->getName() << "\n";
-        }
+void Firewall::handleMessage(cMessage *msg) {
+    auto *pkt = dynamic_cast<Packet*>(msg);
+    EV<<"Packet received in firewall"<<pkt->getDestinationAddress()<<endl;
+    if(strcmp(msg->getArrivalGate()->getName(),"in")==0){
+        // You could inspect packet here
+            pkt->setDestinationAddress(loadBalancerVIP);  // LB IP set during deployment
 
-
-        //Simulate some delay
-        scheduleAt(simTime()+0.001,msg);
-        pkt->setDestinationAddress(loadBalancerVIP);//Redirect to load baalncer VNF
-        EV<<"Firewall redirected packet to loadbalancer VIP"<<loadBalancerVIP<<endl;
+            send(pkt, "outLB");  // outLB goes to NFVINode
+            return;
+    }
+    else if (strcmp(msg->getArrivalGate()->getName(),"inLB")==0){
         send(pkt,"out");
 
     }
+
+}
+
 
 
 void Firewall::initialize(){

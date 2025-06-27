@@ -31,6 +31,10 @@ class Loadbalancer : public cSimpleModule
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
     virtual void finish()override;
+  public:
+    void setBackendServerIps(const std::vector<int>& ips) {
+            serverIPs = ips;
+        }
 };
 
 #endif

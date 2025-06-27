@@ -30,6 +30,8 @@ simple Nfvinode
         output ethOut[] @allowunconnected;
         input managementGateIn;
         output managementGateOut;
+        input internalIn;
+        output internalOut;
  
        
 }

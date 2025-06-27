@@ -18,7 +18,7 @@ package omnet_nfv;
 //
 // TODO auto-generated module
 //
-simple Firewall extends Vnfbase
+simple Firewall
 {
     parameters:
         int loadBalancerVIP @mutable;
