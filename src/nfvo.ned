@@ -26,6 +26,7 @@ simple Nfvo
         
     gates:
         input vnfMgrGateIn;
-        
         output vnfMgrGateOut;
+        input tenantSwitchIn;
+        output tenantSwitchOut;
 }

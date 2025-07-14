@@ -43,12 +43,14 @@ OBJS = \
     $O/src/server.o \
     $O/src/vnfmanager.o \
     $O/src/nfvMessages_m.o \
-    $O/src/packet_m.o
+    $O/src/packet_m.o \
+    $O/src/servicemsg_m.o 
 
 # Message files
 MSGFILES = \
     src/nfvMessages.msg \
-    src/packet.msg
+    src/packet.msg \
+    src/servicemsg.msg
 
 # SM files
 SMFILES =

@@ -21,6 +21,14 @@ using namespace omnetpp;
 
 class Client : public cSimpleModule
 {
+protected:
+    bool awaitingAck = true;         // Whether we are still waiting for acknowledgment
+    int maxRetries = 2;              // Optional limit
+    int retryCount = 0;
+    int destinationIp;
+//    bool requestCompleted = false;
+
+
   protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;

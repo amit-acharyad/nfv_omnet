@@ -30,8 +30,8 @@ simple Nfvinode
         output ethOut[] @allowunconnected;
         input managementGateIn;
         output managementGateOut;
-        input internalIn;
-        output internalOut;
+       	input internalIn[] @display("m=vs");
+    	output internalOut[] @display("m=vs");
  
        
 }

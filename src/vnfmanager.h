@@ -18,6 +18,8 @@
 
 #include <omnetpp.h>
 #include "nfvMessages_m.h"
+#include "servicemsg_m.h"
+#include "deploymentplan_m.h"
 #include <map>
 #include <vector>
 using namespace omnetpp;
@@ -34,30 +36,32 @@ class Vnfmanager : public cSimpleModule
     int numNfviNodes;
     int nextVnfIp;
     // Data structures for managing deployments
-       std::vector<int> nfviNodeIds; // To store IDs of connected NFVINodes
-       std::map<std::string, DeployedVnfInfo> deployedVnfs; // Map VNF name to its info
-       struct VnfDeploymentConfig {
-               VnfType type;
-               std::string name;
-               double cpu;
-               double mem;
-               double bw;
-               // Add other config needed specific to this type for deployment
-           };
-           std::vector<VnfDeploymentConfig> serviceChainBlueprint;
-           std::vector<int>serverVnfIPs;
-           int receivedDeployments = 0;
+   std::vector<int> nfviNodeIds; // To store IDs of connected NFVINodes
+   std::map<std::string, DeployedVnfInfo> deployedVnfs; // Map VNF name to its info
+   struct VnfDeploymentConfig {
+           VnfType type;
+           std::string name;
+           double cpu;
+           double mem;
+           double bw;
+           // Add other config needed specific to this type for deployment
+       };
+   std::vector<VnfDeploymentConfig> serviceChainBlueprint;
+   std::vector<int>serverVnfIPs;
+   std::map<int, int> expectedDeploymentsPerEnterprise;  // enterpriseId → expected count
+   std::map<int, int> receivedDeploymentsPerEnterprise;  // enterpriseId → received count
 
 
-           virtual void initialize() override;
-               virtual void handleMessage(cMessage *msg) override;
-               virtual void handleSelfMessage(cMessage *msg); // New method for self-messages
-               virtual void deployServiceChain(); // New method to encapsulate deployment logic
-               virtual void finish() override;
-               virtual void handleVnfDeploymentResponse(VnfDeploymentResponse *resp);
+   virtual void initialize() override;
+   virtual void handleMessage(cMessage *msg) override;
+   virtual void handleSelfMessage(cMessage *msg); // New method for self-messages
+   virtual void deployServiceChain(); // New method to encapsulate deployment logic
+   virtual void finish() override;
+   virtual void handleVnfDeploymentResponse(VnfDeploymentResponse *resp);
+   virtual void handleDeploymentPlan(VnfDeploymentPlan* plan);
   public:
-               cGate *nfvoGate;
-               cGate *nfviNodeGate;
+   cGate *nfvoGate;
+   cGate *nfviNodeGate;
 };
 
 #endif

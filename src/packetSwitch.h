@@ -17,6 +17,8 @@
 #define __OMNET_NFV_PACKETSWITCH_H_
 
 #include <omnetpp.h>
+#include "vnfRegistration_m.h"
+
 
 using namespace omnetpp;
 
@@ -25,6 +27,7 @@ class PacketSwitch : public cSimpleModule
   protected:
     int numPorts;
     std::map<int, int> ipToPort;
+    std::map<int, int> ipToNfviNodeGate;
   protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;

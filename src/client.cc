@@ -1,60 +1,60 @@
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
-
 #include "client.h"
 #include "packet_m.h"
 Define_Module(Client);
-
 void Client::initialize() {
-
-    int sourceAddress=par("sourceAddress");
+    int sourceAddress = par("sourceAddress");
+    destinationIp = par("destinationAddress");
     Packet *reg = new Packet("Register");
+    reg->setSourceAddress(sourceAddress);
+    reg->setIsRegistration(true);
+    send(reg, "ethOut");
 
-        reg->setSourceAddress(sourceAddress);  // assuming you have this param
-        reg->setIsRegistration(true);
-        send(reg, "ethOut");
-        sendEvent = new cMessage("sendEvent");
-        sendInterval=par("sendInterval");
-         scheduleAt(simTime() + sendInterval, sendEvent);  // send after 1s
+    sendEvent = new cMessage("sendEvent");
+    sendInterval = par("sendInterval");
+
+    // Try first request after initial delay
+    scheduleAt(simTime() + sendInterval, sendEvent);
 }
-void Client::handleMessage(cMessage *msg)  {
-    if(msg->isSelfMessage()){
-        EV<<"Clinet sending request"<<endl;
-        Packet *req=new Packet("Client Request");
-        int sourceIp=par("sourceAddress");
-           int destinationIp=par("destinationAddress");
-           req->setSourceAddress(sourceIp);  // assuming you have this param
-               req->setDestinationAddress(destinationIp);
-               req->setIsRegistration(false);
-               send(req, "ethOut");
 
+void Client::handleMessage(cMessage *msg) {
+    if (msg->isSelfMessage()) {
+        if (!awaitingAck && retryCount >= maxRetries) {
+            EV << "Client gave up after " << retryCount << " retries.\n";
+            delete msg;
+            return;
+        }
+
+        EV << "Client retrying request to " << destinationIp << " (attempt " << retryCount + 1 << ")\n";
+
+        Packet *req = new Packet("ClientRequest");
+        req->setSourceAddress(par("sourceAddress"));
+        req->setDestinationAddress(destinationIp);
+        req->setIsRegistration(false);
+        req->setIsProbe(true);  // Optional: distinguish probe packets
+        send(req, "ethOut");
+
+        retryCount++;
+
+        // Reschedule if still waiting
+        if (awaitingAck && retryCount < maxRetries) {
+            scheduleAt(simTime() + sendInterval, sendEvent);
+        }
     }
-    else if (auto pkt = dynamic_cast<Packet *>(msg)) {
-           // Received a packet from the network
-           EV << "Client received response: " << pkt->getName() <<"from"<< pkt->getSourceAddress()<< "\n";
-           delete pkt;
-       }
-       else {
-           EV_WARN << "Unknown message received, discarding.\n";
-           delete msg;
-       }
-
-
-
-
-
+    else if (auto *pkt = dynamic_cast<Packet *>(msg)) {
+        if (pkt->getName() == std::string("PacketForwardedAck")) {
+            if (pkt->getDestinationAddress() == destinationIp) {
+                EV << "Client received forward confirmation from PacketSwitch. Stopping retries.\n";
+                awaitingAck = false;
+            }
+        } else {
+            EV << "Client received response: " << pkt->getName() << " from " << pkt->getSourceAddress() << "\n";
+        }
+        delete pkt;
+    }
+    else {
+        EV_WARN << "Unknown message received, discarding.\n";
+        delete msg;
+    }
 }
 
 

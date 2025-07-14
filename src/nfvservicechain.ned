@@ -22,6 +22,7 @@ network Nfvservicechain
     parameters:
         int numClients = default(4);
         int numNfviNodes = default(2);
+        int numEnterpriseClients=default(2);
         int centralSwitchPorts = default(numClients + numNfviNodes);
 
     types:
@@ -32,7 +33,7 @@ network Nfvservicechain
         client[numClients]: Client {
             parameters:
                 sourceAddress = index + 1;
-                destinationAddress = 10; 
+                destinationAddress = 106; 
         }
         centralSwitch: PacketSwitch {
             parameters:
@@ -47,8 +48,21 @@ network Nfvservicechain
         }
         vnfManager: Vnfmanager;
         nfvo: Nfvo;
+        enterpriseClients[numEnterpriseClients]:EnterpriseClient{
+        parameters:
+             enterpriseId=index;
+         serviceChainType="Firewall->LoadBalancer->Server";
+         desiredServerCount=1+index;
+         requestTime =2 s ;
+            
+        };
+        tenantSwitch:TenantSwitch{
+        parameters:
+        	numTenants=parent.numEnterpriseClients;
+        }
 
     connections allowunconnected:
+        //connect clinetts and centralpacketswitch
         for i = 0..numClients - 1 {
             
             client[i].ethOut --> C--> centralSwitch.portIn[i];
@@ -62,8 +76,6 @@ network Nfvservicechain
 
         // Connect VNF Manager to NFVI Nodes
         for i = 0..numNfviNodes - 1 {
-            
-            
             vnfManager.nfviNodeGateOut++ --> nfviNode[i].managementGateIn;
             nfviNode[i].managementGateOut --> vnfManager.nfviNodeGateIn++;
         }
@@ -74,4 +86,16 @@ network Nfvservicechain
            centralSwitch.portOut[numClients+i] --> C--> nfviNode[i].ethIn++;
            
         }
+        
+        //Connect Enterprise clinets to tenantSwitch 
+        for i =0..numEnterpriseClients-1{
+        	enterpriseClients[i].out --> C-->tenantSwitch.fromTenants[i];
+        	tenantSwitch.toTenants[i] --> C--> enterpriseClients[i].in;
+        }
+        //connect tenant switch to nfvo
+        tenantSwitch.toNfvo --> C --> nfvo.tenantSwitchIn;
+        nfvo.tenantSwitchOut --> C --> tenantSwitch.fromNfvo;
+        
+        
+        
 }

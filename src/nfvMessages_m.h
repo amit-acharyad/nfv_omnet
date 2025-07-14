@@ -19,26 +19,15 @@
 class NfvMessage;
 class VnfDeploymentRequest;
 class VnfDeploymentResponse;
+#include "vnftype_m.h" // import vnftype
+
 /**
- * Class generated from <tt>nfvMessages.msg:15</tt> by opp_msgtool.
+ * Class generated from <tt>nfvMessages.msg:2</tt> by opp_msgtool.
  * <pre>
- * //
- * // This program is free software: you can redistribute it and/or modify
- * // it under the terms of the GNU Lesser General Public License as published by
- * // the Free Software Foundation, either version 3 of the License, or
- * // (at your option) any later version.
- * // 
- * // This program is distributed in the hope that it will be useful,
- * // but WITHOUT ANY WARRANTY; without even the implied warranty of
- * // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * // GNU Lesser General Public License for more details.
- * // 
- * // You should have received a copy of the GNU Lesser General Public License
- * // along with this program.  If not, see http://www.gnu.org/licenses/.
- * //
  * packet NfvMessage
  * {
  * }
+ * // Define VNF types using an enum for clarity
  * </pre>
  */
 class NfvMessage : public ::omnetpp::cPacket
@@ -65,30 +54,7 @@ inline void doParsimPacking(omnetpp::cCommBuffer *b, const NfvMessage& obj) {obj
 inline void doParsimUnpacking(omnetpp::cCommBuffer *b, NfvMessage& obj) {obj.parsimUnpack(b);}
 
 /**
- * Enum generated from <tt>nfvMessages.msg:17</tt> by opp_msgtool.
- * <pre>
- * // Define VNF types using an enum for clarity
- * enum VnfType
- * {
- *     VNF_TYPE_UNKNOWN = 0;
- *     VNF_TYPE_FIREWALL = 1;
- *     VNF_TYPE_LOADBALANCER = 2;
- *     VNF_TYPE_SERVER = 3;
- * }
- * </pre>
- */
-enum VnfType {
-    VNF_TYPE_UNKNOWN = 0,
-    VNF_TYPE_FIREWALL = 1,
-    VNF_TYPE_LOADBALANCER = 2,
-    VNF_TYPE_SERVER = 3
-};
-
-inline void doParsimPacking(omnetpp::cCommBuffer *b, const VnfType& e) { b->pack(static_cast<int>(e)); }
-inline void doParsimUnpacking(omnetpp::cCommBuffer *b, VnfType& e) { int n; b->unpack(n); e = static_cast<VnfType>(n); }
-
-/**
- * Class generated from <tt>nfvMessages.msg:24</tt> by opp_msgtool.
+ * Class generated from <tt>nfvMessages.msg:6</tt> by opp_msgtool.
  * <pre>
  * packet VnfDeploymentRequest extends NfvMessage
  * {
@@ -179,7 +145,7 @@ inline void doParsimPacking(omnetpp::cCommBuffer *b, const VnfDeploymentRequest&
 inline void doParsimUnpacking(omnetpp::cCommBuffer *b, VnfDeploymentRequest& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>nfvMessages.msg:44</tt> by opp_msgtool.
+ * Class generated from <tt>nfvMessages.msg:26</tt> by opp_msgtool.
  * <pre>
  * packet VnfDeploymentResponse extends NfvMessage
  * {

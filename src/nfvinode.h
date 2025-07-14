@@ -26,6 +26,8 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include "vnfRegistration_m.h"
+
 
 using namespace omnetpp;
 
@@ -37,6 +39,13 @@ struct DeployedVnfModule {
     int ipAddress;          // The IP address assigned to this VNF
     cModule* moduleRef;     // Pointer to the actual VNF module instance
 };
+struct ServiceChainInfo {
+    int enterpriseId;
+    std::vector<DeployedVnfModule> vnfsOrdered;  // Full info: name, type, ip, module
+    bool wiringDone = false;
+};
+
+
 
 
 class Nfvinode : public cSimpleModule
@@ -51,20 +60,26 @@ class Nfvinode : public cSimpleModule
     double totalCpuCapacity;
     double totalMemoryCapacity;
     double totalNetworkBandwidth;
-
     int vnfIdCounter;
-
+    std::map<int, std::queue<Packet*>> bufferedPacketsPerEnterprise;
+    std::map<int, ServiceChainInfo> serviceChains;  // enterpriseId → ServiceChainInfo
     std::map<int, DeployedVnfModule> deployedVnfsByIp;
-    std::map<std::string, DeployedVnfModule> deployedVnfsByName;
-    bool internalConnectionsDone;
-    std::queue<Packet*> bufferedPackets;
+    std::map<int, int> vnfIpToEnterpriseId;
+    std::map<int, int> vnfIpToInternalGateIndex;
+    int nextAvailableGateIndex = 0;
+
+
+
+
+
 
   protected:
-        virtual void initialize() override;
-            virtual void handleMessage(cMessage *msg) override;
-            virtual void handleVnfDeploymentRequest(VnfDeploymentRequest *req); // New handler
-            virtual void handleDataPacket(Packet *packet, cGate *arrivalGate); // New handler for clarity
-            virtual void wireInternalServiceChain();
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage *msg) override;
+    virtual void handleVnfDeploymentRequest(VnfDeploymentRequest *req); // New handler
+    virtual void handleDataPacket(Packet *packet,cGate *arrivalGate); // New handler for clarity
+    virtual void wireInternalServiceChain(int enterpriseId);
+    virtual int getEnterpriseIdForVnfIp(int ip);
 };
 
 #endif

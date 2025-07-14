@@ -178,6 +178,7 @@ void Packet::copy(const Packet& other)
     this->sourceAddress = other.sourceAddress;
     this->destinationAddress = other.destinationAddress;
     this->isRegistration_ = other.isRegistration_;
+    this->isProbe_ = other.isProbe_;
 }
 
 void Packet::parsimPack(omnetpp::cCommBuffer *b) const
@@ -186,6 +187,7 @@ void Packet::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->sourceAddress);
     doParsimPacking(b,this->destinationAddress);
     doParsimPacking(b,this->isRegistration_);
+    doParsimPacking(b,this->isProbe_);
 }
 
 void Packet::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -194,6 +196,7 @@ void Packet::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->sourceAddress);
     doParsimUnpacking(b,this->destinationAddress);
     doParsimUnpacking(b,this->isRegistration_);
+    doParsimUnpacking(b,this->isProbe_);
 }
 
 int Packet::getSourceAddress() const
@@ -226,6 +229,16 @@ void Packet::setIsRegistration(bool isRegistration)
     this->isRegistration_ = isRegistration;
 }
 
+bool Packet::isProbe() const
+{
+    return this->isProbe_;
+}
+
+void Packet::setIsProbe(bool isProbe)
+{
+    this->isProbe_ = isProbe;
+}
+
 class PacketDescriptor : public omnetpp::cClassDescriptor
 {
   private:
@@ -234,6 +247,7 @@ class PacketDescriptor : public omnetpp::cClassDescriptor
         FIELD_sourceAddress,
         FIELD_destinationAddress,
         FIELD_isRegistration,
+        FIELD_isProbe,
     };
   public:
     PacketDescriptor();
@@ -300,7 +314,7 @@ const char *PacketDescriptor::getProperty(const char *propertyName) const
 int PacketDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 3+base->getFieldCount() : 3;
+    return base ? 4+base->getFieldCount() : 4;
 }
 
 unsigned int PacketDescriptor::getFieldTypeFlags(int field) const
@@ -315,8 +329,9 @@ unsigned int PacketDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,    // FIELD_sourceAddress
         FD_ISEDITABLE,    // FIELD_destinationAddress
         FD_ISEDITABLE,    // FIELD_isRegistration
+        FD_ISEDITABLE,    // FIELD_isProbe
     };
-    return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 4) ? fieldTypeFlags[field] : 0;
 }
 
 const char *PacketDescriptor::getFieldName(int field) const
@@ -331,8 +346,9 @@ const char *PacketDescriptor::getFieldName(int field) const
         "sourceAddress",
         "destinationAddress",
         "isRegistration",
+        "isProbe",
     };
-    return (field >= 0 && field < 3) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 4) ? fieldNames[field] : nullptr;
 }
 
 int PacketDescriptor::findField(const char *fieldName) const
@@ -342,6 +358,7 @@ int PacketDescriptor::findField(const char *fieldName) const
     if (strcmp(fieldName, "sourceAddress") == 0) return baseIndex + 0;
     if (strcmp(fieldName, "destinationAddress") == 0) return baseIndex + 1;
     if (strcmp(fieldName, "isRegistration") == 0) return baseIndex + 2;
+    if (strcmp(fieldName, "isProbe") == 0) return baseIndex + 3;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -357,8 +374,9 @@ const char *PacketDescriptor::getFieldTypeString(int field) const
         "int",    // FIELD_sourceAddress
         "int",    // FIELD_destinationAddress
         "bool",    // FIELD_isRegistration
+        "bool",    // FIELD_isProbe
     };
-    return (field >= 0 && field < 3) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 4) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **PacketDescriptor::getFieldPropertyNames(int field) const
@@ -444,6 +462,7 @@ std::string PacketDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int
         case FIELD_sourceAddress: return long2string(pp->getSourceAddress());
         case FIELD_destinationAddress: return long2string(pp->getDestinationAddress());
         case FIELD_isRegistration: return bool2string(pp->isRegistration());
+        case FIELD_isProbe: return bool2string(pp->isProbe());
         default: return "";
     }
 }
@@ -463,6 +482,7 @@ void PacketDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field,
         case FIELD_sourceAddress: pp->setSourceAddress(string2long(value)); break;
         case FIELD_destinationAddress: pp->setDestinationAddress(string2long(value)); break;
         case FIELD_isRegistration: pp->setIsRegistration(string2bool(value)); break;
+        case FIELD_isProbe: pp->setIsProbe(string2bool(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Packet'", field);
     }
 }
@@ -480,6 +500,7 @@ omnetpp::cValue PacketDescriptor::getFieldValue(omnetpp::any_ptr object, int fie
         case FIELD_sourceAddress: return pp->getSourceAddress();
         case FIELD_destinationAddress: return pp->getDestinationAddress();
         case FIELD_isRegistration: return pp->isRegistration();
+        case FIELD_isProbe: return pp->isProbe();
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'Packet' as cValue -- field index out of range?", field);
     }
 }
@@ -499,6 +520,7 @@ void PacketDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, 
         case FIELD_sourceAddress: pp->setSourceAddress(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_destinationAddress: pp->setDestinationAddress(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_isRegistration: pp->setIsRegistration(value.boolValue()); break;
+        case FIELD_isProbe: pp->setIsProbe(value.boolValue()); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Packet'", field);
     }
 }

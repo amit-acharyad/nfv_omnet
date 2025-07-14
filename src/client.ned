@@ -21,7 +21,7 @@ package omnet_nfv;
 simple Client
 {
     parameters:
-        double sendInterval @unit(s)=default(1s);
+        double sendInterval @unit(s)=default(3s);
         int sourceAddress;//source Ip
         int destinationAddress;
         

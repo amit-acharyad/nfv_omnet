@@ -471,8 +471,6 @@ void NfvMessageDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, i
     }
 }
 
-Register_Enum(VnfType, (VnfType::VNF_TYPE_UNKNOWN, VnfType::VNF_TYPE_FIREWALL, VnfType::VNF_TYPE_LOADBALANCER, VnfType::VNF_TYPE_SERVER));
-
 Register_Class(VnfDeploymentRequest)
 
 VnfDeploymentRequest::VnfDeploymentRequest(const char *name, short kind) : ::NfvMessage(name, kind)

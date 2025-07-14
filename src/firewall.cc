@@ -33,8 +33,8 @@ void Firewall::handleMessage(cMessage *msg) {
             return;
     }
     else if (strcmp(msg->getArrivalGate()->getName(),"inLB")==0){
+        EV<<"Sending respose coming from inLB to out to destination "<<pkt->getDestinationAddress()<<endl;
         send(pkt,"out");
-
     }
 
 }

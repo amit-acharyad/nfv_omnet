@@ -15,11 +15,10 @@
 
 #include "vnfmanager.h"
 #include "nfvMessages_m.h"
+#include "servicemsg_m.h"
+#include "deploymentplan_m.h"
 Define_Module(Vnfmanager);
-// Self-message kind for triggering deployment
-enum VnfManagerMessageKinds {
-    TRIGGER_DEPLOYMENT = 1000,
-};
+
 void Vnfmanager::initialize()
 {
     nfvoGate = gate("nfvoGateOut");
@@ -32,24 +31,7 @@ void Vnfmanager::initialize()
         nfviNodeIds.push_back(i); // Assuming gate index maps to NFVINode index for now
     }
 
-    // --- Define the Service Chain Blueprint ---
-    // This is where you specify WHICH VNFs to deploy and in what conceptual order.
-    // We will deploy: Firewall -> LoadBalancer -> 3 WebServers
 
-    // 1. WebServerVNFs (deploy first so their IPs are known for LoadBalancer)
-    serviceChainBlueprint.push_back({VNF_TYPE_SERVER, "Server1", 1000, 512, 100});
-    serviceChainBlueprint.push_back({VNF_TYPE_SERVER, "Server2", 1000, 512, 100});
-    serviceChainBlueprint.push_back({VNF_TYPE_SERVER, "Server3", 1000, 512, 100});
-
-    // 2. LoadBalancer
-    serviceChainBlueprint.push_back({VNF_TYPE_LOADBALANCER, "LoadBalancer1", 500, 256, 50});
-
-    // 3. Firewall (entry point of the service chain)
-    serviceChainBlueprint.push_back({VNF_TYPE_FIREWALL, "Firewall1", 700, 256, 70});
-
-
-    // Trigger the deployment process after a short delay to allow all modules to initialize
-    scheduleAt(simTime() + 1.0, new cMessage("TriggerDeployment", TRIGGER_DEPLOYMENT));
 }
 
 void Vnfmanager::handleMessage(cMessage *msg)
@@ -58,13 +40,108 @@ void Vnfmanager::handleMessage(cMessage *msg)
         handleSelfMessage(msg);
         return;
     }
+    if (auto *plan = dynamic_cast<VnfDeploymentPlan *>(msg)) {
+        handleDeploymentPlan(plan);
+    }
+
     if (auto resp = dynamic_cast<VnfDeploymentResponse*>(msg)) {
            handleVnfDeploymentResponse(resp);
        }
 
 
 }
+void Vnfmanager::handleDeploymentPlan(VnfDeploymentPlan* plan) {
+    int targetNfviNodeGateIndex = plan->getNfviNodeId();
+    int enterpriseId = plan->getEnterpriseId();
+    EV << "VNFManager: Received deployment plan for enterprise " << enterpriseId
+       << " targeting NFVINode[" << targetNfviNodeGateIndex << "]\n";
 
+    std::vector<int> serverVnfIPs;
+    std::map<std::string, int> assignedIps; // name → ip
+    int expected = plan->getBlueprintsArraySize();
+
+    expectedDeploymentsPerEnterprise[enterpriseId] = expected;
+    receivedDeploymentsPerEnterprise[enterpriseId] = 0;
+
+    EV << "VNFManager: Deployment plan for enterprise " << enterpriseId
+       << " expects " << expected << " VNFs.\n";
+
+    // First pass: assign IPs
+    for (int i = 0; i < expected; ++i) {
+        const auto& bp = plan->getBlueprints(i);
+        assignedIps[bp.getVnfName()] = nextVnfIp++;
+    }
+
+    // Second pass: send deployment requests
+    for (int i = 0; i < expected; ++i) {
+        const auto& bp = plan->getBlueprints(i);
+
+        VnfDeploymentRequest *req = new VnfDeploymentRequest("VnfDeploymentRequest");
+        req->setVnfName(bp.getVnfName());
+        req->setVnfType(bp.getVnfType());
+        req->setCpuRequest(bp.getCpu());
+        req->setRequestId(enterpriseId);
+        //setting requestid to enterprise id for now
+        req->setMemoryRequest(bp.getMemory());
+        req->setBandwidthRequest(bp.getBandwidth());
+
+        int ip = assignedIps[bp.getVnfName()];
+        req->setVnfIpAddress(ip);
+
+        // Collect server IPs for LB config
+        if (bp.getVnfType() == VNF_TYPE_SERVER) {
+            serverVnfIPs.push_back(ip);
+        }
+
+        // Handle LoadBalancer backend server IPs
+        if (bp.getVnfType() == VNF_TYPE_LOADBALANCER) {
+            req->setBackendServerIpsArraySize(serverVnfIPs.size());
+            for (size_t j = 0; j < serverVnfIPs.size(); ++j) {
+                req->setBackendServerIps(j, serverVnfIPs[j]);
+            }
+        }
+
+        EV << "VNFManager: Deploying " << bp.getVnfName() << " with IP " << ip << "\n";
+        send(req, "nfviNodeGateOut", targetNfviNodeGateIndex);
+    }
+    delete plan;
+}
+void Vnfmanager::handleVnfDeploymentResponse(VnfDeploymentResponse *resp) {
+    if (resp->getSuccess()) {
+        EV << "Deployment succeeded for " << resp->getVnfName() << "\n";
+
+    } else {
+        EV_WARN << "Deployment failed for " << resp->getVnfName() << ": " << resp->getInfoMessage() << "\n";
+    }
+    int enterpriseId = resp->getRequestId();
+    receivedDeploymentsPerEnterprise[enterpriseId]++;
+
+    EV << "Received VNF deployment response for enterprise " << enterpriseId
+       << ". Total received: " << receivedDeploymentsPerEnterprise[enterpriseId]
+       << "/" << expectedDeploymentsPerEnterprise[enterpriseId] << "\n";
+
+    if (receivedDeploymentsPerEnterprise[enterpriseId] == expectedDeploymentsPerEnterprise[enterpriseId]) {
+        EV << "All VNFs deployed for enterprise " << enterpriseId << ". Sending ack and wiring trigger.\n";
+
+        // Send response to NFVO
+        send(resp, "nfvoGateOut");
+        EV<<"Sent response to nfvoGateOut"<<endl;
+        // Trigger wiring
+        cMessage* wiringTrigger = new cMessage("TriggerWiring");
+        wiringTrigger->addPar("enterpriseId") = enterpriseId;
+        EV<<"Triggeringg message set now sending"<<endl;
+        send(wiringTrigger, "nfviNodeGateOut", 0);  // or choose target node appropriately
+        EV<<"Sent the wiring trigger"<<endl;
+    } else {
+        delete resp;  // Only delete if not forwarded
+    }
+
+
+
+
+}
+
+/*
 void Vnfmanager::handleVnfDeploymentResponse(VnfDeploymentResponse *resp) {
     if (resp->getSuccess()) {
         EV << "VNFManager: Deployment succeeded for " << resp->getVnfName() << "\n";
@@ -92,12 +169,9 @@ void Vnfmanager::handleVnfDeploymentResponse(VnfDeploymentResponse *resp) {
     delete resp;
 }
 
-
+*/
 void Vnfmanager::handleSelfMessage(cMessage *msg) {
-    if (msg->getKind() == TRIGGER_DEPLOYMENT) {
-        EV << "VnfManager: Triggering service chain deployment." << endl;
-        deployServiceChain();
-    }
+   EV<<"VNF Manager self message"<<endl;
     delete msg; // Delete the self-message
 }
 
@@ -112,7 +186,6 @@ void Vnfmanager::deployServiceChain() {
         req->setCpuRequest(config.cpu);
         req->setMemoryRequest(config.mem);
         req->setBandwidthRequest(config.bw);
-
         // Assign unique IP
         req->setVnfIpAddress(nextVnfIp++);
         EV << "VnfManager: Preparing deployment for " << config.name << " with IP " << req->getVnfIpAddress() << endl;

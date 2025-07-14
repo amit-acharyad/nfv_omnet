@@ -17,17 +17,24 @@
 #define __OMNET_NFV_NFVO_H_
 
 #include <omnetpp.h>
+#include "servicemsg_m.h"
+#include "nfvMessages_m.h"
 
+#include "deploymentplan_m.h"
 using namespace omnetpp;
 
-/**
- * TODO - Generated class
- */
 class Nfvo : public cSimpleModule
 {
+  private:
+    int nextAckId = 0;
+
   protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
+
+    void handleServiceChainRequest(ServiceChainRequest *req);
+    void sendDeploymentPlan(int enterpriseId, int nfviNodeId, const std::string& chainType, int numServers);
+    void sendServiceChainAck(VnfDeploymentResponse *resp);
 };
 
 #endif

@@ -1,16 +1,16 @@
 version 3
-run General-0-20250627-23:31:01-10408
+run General-0-20250715-00:41:51-17652
 attr configname General
-attr datetime 20250627-23:31:01
-attr datetimef 20250627-233101
+attr datetime 20250715-00:41:51
+attr datetimef 20250715-004151
 attr experiment General
-attr inifile ../simulations/omnetpp.ini
+attr inifile omnetpp.ini
 attr iterationvars ""
 attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network omnet_nfv.Nfvservicechain
-attr processid 10408
+attr processid 17652
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -177,77 +177,178 @@ par Nfvservicechain.centralSwitch.portOut[5].channel ber 0
 attr mutable ""
 par Nfvservicechain.centralSwitch.portOut[5].channel per 0
 attr mutable ""
+par Nfvservicechain.enterpriseClients[0].out.channel typename "\"omnet_nfv.Nfvservicechain.C\""
+par Nfvservicechain.enterpriseClients[0].out.channel disabled false
+attr mutable ""
+par Nfvservicechain.enterpriseClients[0].out.channel delay 0s
+attr mutable ""
+attr unit s
+par Nfvservicechain.enterpriseClients[0].out.channel datarate 1e+08bps
+attr mutable ""
+attr unit bps
+par Nfvservicechain.enterpriseClients[0].out.channel ber 0
+attr mutable ""
+par Nfvservicechain.enterpriseClients[0].out.channel per 0
+attr mutable ""
+par Nfvservicechain.tenantSwitch.toTenants[0].channel typename "\"omnet_nfv.Nfvservicechain.C\""
+par Nfvservicechain.tenantSwitch.toTenants[0].channel disabled false
+attr mutable ""
+par Nfvservicechain.tenantSwitch.toTenants[0].channel delay 0s
+attr mutable ""
+attr unit s
+par Nfvservicechain.tenantSwitch.toTenants[0].channel datarate 1e+08bps
+attr mutable ""
+attr unit bps
+par Nfvservicechain.tenantSwitch.toTenants[0].channel ber 0
+attr mutable ""
+par Nfvservicechain.tenantSwitch.toTenants[0].channel per 0
+attr mutable ""
+par Nfvservicechain.enterpriseClients[1].out.channel typename "\"omnet_nfv.Nfvservicechain.C\""
+par Nfvservicechain.enterpriseClients[1].out.channel disabled false
+attr mutable ""
+par Nfvservicechain.enterpriseClients[1].out.channel delay 0s
+attr mutable ""
+attr unit s
+par Nfvservicechain.enterpriseClients[1].out.channel datarate 1e+08bps
+attr mutable ""
+attr unit bps
+par Nfvservicechain.enterpriseClients[1].out.channel ber 0
+attr mutable ""
+par Nfvservicechain.enterpriseClients[1].out.channel per 0
+attr mutable ""
+par Nfvservicechain.tenantSwitch.toTenants[1].channel typename "\"omnet_nfv.Nfvservicechain.C\""
+par Nfvservicechain.tenantSwitch.toTenants[1].channel disabled false
+attr mutable ""
+par Nfvservicechain.tenantSwitch.toTenants[1].channel delay 0s
+attr mutable ""
+attr unit s
+par Nfvservicechain.tenantSwitch.toTenants[1].channel datarate 1e+08bps
+attr mutable ""
+attr unit bps
+par Nfvservicechain.tenantSwitch.toTenants[1].channel ber 0
+attr mutable ""
+par Nfvservicechain.tenantSwitch.toTenants[1].channel per 0
+attr mutable ""
+par Nfvservicechain.tenantSwitch.toNfvo.channel typename "\"omnet_nfv.Nfvservicechain.C\""
+par Nfvservicechain.tenantSwitch.toNfvo.channel disabled false
+attr mutable ""
+par Nfvservicechain.tenantSwitch.toNfvo.channel delay 0s
+attr mutable ""
+attr unit s
+par Nfvservicechain.tenantSwitch.toNfvo.channel datarate 1e+08bps
+attr mutable ""
+attr unit bps
+par Nfvservicechain.tenantSwitch.toNfvo.channel ber 0
+attr mutable ""
+par Nfvservicechain.tenantSwitch.toNfvo.channel per 0
+attr mutable ""
+par Nfvservicechain.nfvo.tenantSwitchOut.channel typename "\"omnet_nfv.Nfvservicechain.C\""
+par Nfvservicechain.nfvo.tenantSwitchOut.channel disabled false
+attr mutable ""
+par Nfvservicechain.nfvo.tenantSwitchOut.channel delay 0s
+attr mutable ""
+attr unit s
+par Nfvservicechain.nfvo.tenantSwitchOut.channel datarate 1e+08bps
+attr mutable ""
+attr unit bps
+par Nfvservicechain.nfvo.tenantSwitchOut.channel ber 0
+attr mutable ""
+par Nfvservicechain.nfvo.tenantSwitchOut.channel per 0
+attr mutable ""
 par Nfvservicechain.client[0] typename "\"omnet_nfv.Client\""
-par Nfvservicechain.client[0] sendInterval 1s
+par Nfvservicechain.client[0] sendInterval 3s
 attr unit s
 par Nfvservicechain.client[0] sourceAddress 1
-par Nfvservicechain.client[0] destinationAddress 10
+par Nfvservicechain.client[0] destinationAddress 106
 par Nfvservicechain.client[1] typename "\"omnet_nfv.Client\""
-par Nfvservicechain.client[1] sendInterval 1s
+par Nfvservicechain.client[1] sendInterval 3s
 attr unit s
 par Nfvservicechain.client[1] sourceAddress 2
-par Nfvservicechain.client[1] destinationAddress 10
+par Nfvservicechain.client[1] destinationAddress 106
 par Nfvservicechain.client[2] typename "\"omnet_nfv.Client\""
-par Nfvservicechain.client[2] sendInterval 1s
+par Nfvservicechain.client[2] sendInterval 3s
 attr unit s
 par Nfvservicechain.client[2] sourceAddress 3
-par Nfvservicechain.client[2] destinationAddress 10
+par Nfvservicechain.client[2] destinationAddress 106
 par Nfvservicechain.client[3] typename "\"omnet_nfv.Client\""
-par Nfvservicechain.client[3] sendInterval 1s
+par Nfvservicechain.client[3] sendInterval 3s
 attr unit s
 par Nfvservicechain.client[3] sourceAddress 4
-par Nfvservicechain.client[3] destinationAddress 10
+par Nfvservicechain.client[3] destinationAddress 106
 par Nfvservicechain.centralSwitch typename "\"omnet_nfv.PacketSwitch\""
 par Nfvservicechain.centralSwitch numPorts 6
-par Nfvservicechain.nfviNode[0].Server1 typename "\"omnet_nfv.Server\""
-par Nfvservicechain.nfviNode[0].Server1 myIpAddress 100
+par Nfvservicechain.nfviNode[0].Server001 typename "\"omnet_nfv.Server\""
+par Nfvservicechain.nfviNode[0].Server001 myIpAddress 100
 attr mutable ""
-par Nfvservicechain.nfviNode[0].Server1 cpuConsumptionPerRequest 0MIPS
+par Nfvservicechain.nfviNode[0].Server001 cpuConsumptionPerRequest 0MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[0].Server1 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[0].Server001 memoryConsumption 0MB
 attr unit MB
-par Nfvservicechain.nfviNode[0].Server1 bandwidthConsumption 0MIPS
+par Nfvservicechain.nfviNode[0].Server001 bandwidthConsumption 0MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[0].Server2 typename "\"omnet_nfv.Server\""
-par Nfvservicechain.nfviNode[0].Server2 myIpAddress 101
+par Nfvservicechain.nfviNode[0].Loadbalancer00 typename "\"omnet_nfv.Loadbalancer\""
+par Nfvservicechain.nfviNode[0].Loadbalancer00 myIpAddress 101
 attr mutable ""
-par Nfvservicechain.nfviNode[0].Server2 cpuConsumptionPerRequest 0MIPS
-attr unit MIPS
-par Nfvservicechain.nfviNode[0].Server2 memoryConsumption 0MB
-attr unit MB
-par Nfvservicechain.nfviNode[0].Server2 bandwidthConsumption 0MIPS
-attr unit MIPS
-par Nfvservicechain.nfviNode[0].Server3 typename "\"omnet_nfv.Server\""
-par Nfvservicechain.nfviNode[0].Server3 myIpAddress 102
-attr mutable ""
-par Nfvservicechain.nfviNode[0].Server3 cpuConsumptionPerRequest 0MIPS
-attr unit MIPS
-par Nfvservicechain.nfviNode[0].Server3 memoryConsumption 0MB
-attr unit MB
-par Nfvservicechain.nfviNode[0].Server3 bandwidthConsumption 0MIPS
-attr unit MIPS
-par Nfvservicechain.nfviNode[0].LoadBalancer1 typename "\"omnet_nfv.Loadbalancer\""
-par Nfvservicechain.nfviNode[0].LoadBalancer1 myIpAddress 103
-attr mutable ""
-par Nfvservicechain.nfviNode[0].LoadBalancer1 cpuConsumptionPerPacket 0MIPS
+par Nfvservicechain.nfviNode[0].Loadbalancer00 cpuConsumptionPerPacket 0MIPS
 attr immutable ""
 attr unit MIPS
-par Nfvservicechain.nfviNode[0].LoadBalancer1 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[0].Loadbalancer00 memoryConsumption 0MB
 attr immutable ""
 attr unit MB
-par Nfvservicechain.nfviNode[0].LoadBalancer1 bandwidthConsumption 0Mbps
+par Nfvservicechain.nfviNode[0].Loadbalancer00 bandwidthConsumption 0Mbps
 attr immutable ""
 attr unit Mbps
-par Nfvservicechain.nfviNode[0].Firewall1 typename "\"omnet_nfv.Firewall\""
-par Nfvservicechain.nfviNode[0].Firewall1 loadBalancerVIP 0
+par Nfvservicechain.nfviNode[0].Firewall00 typename "\"omnet_nfv.Firewall\""
+par Nfvservicechain.nfviNode[0].Firewall00 loadBalancerVIP 0
 attr mutable ""
-par Nfvservicechain.nfviNode[0].Firewall1 myIpAddress 104
+par Nfvservicechain.nfviNode[0].Firewall00 myIpAddress 102
 attr mutable ""
-par Nfvservicechain.nfviNode[0].Firewall1 cpuConsumptionPerPacket 0MIPS
+par Nfvservicechain.nfviNode[0].Firewall00 cpuConsumptionPerPacket 0MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[0].Firewall1 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[0].Firewall00 memoryConsumption 0MB
 attr unit MB
-par Nfvservicechain.nfviNode[0].Firewall1 bandwidthConsumption 0Mbps
+par Nfvservicechain.nfviNode[0].Firewall00 bandwidthConsumption 0Mbps
+attr unit Mbps
+par Nfvservicechain.nfviNode[0].Server101 typename "\"omnet_nfv.Server\""
+par Nfvservicechain.nfviNode[0].Server101 myIpAddress 103
+attr mutable ""
+par Nfvservicechain.nfviNode[0].Server101 cpuConsumptionPerRequest 0MIPS
+attr unit MIPS
+par Nfvservicechain.nfviNode[0].Server101 memoryConsumption 0MB
+attr unit MB
+par Nfvservicechain.nfviNode[0].Server101 bandwidthConsumption 0MIPS
+attr unit MIPS
+par Nfvservicechain.nfviNode[0].Server102 typename "\"omnet_nfv.Server\""
+par Nfvservicechain.nfviNode[0].Server102 myIpAddress 104
+attr mutable ""
+par Nfvservicechain.nfviNode[0].Server102 cpuConsumptionPerRequest 0MIPS
+attr unit MIPS
+par Nfvservicechain.nfviNode[0].Server102 memoryConsumption 0MB
+attr unit MB
+par Nfvservicechain.nfviNode[0].Server102 bandwidthConsumption 0MIPS
+attr unit MIPS
+par Nfvservicechain.nfviNode[0].Loadbalancer10 typename "\"omnet_nfv.Loadbalancer\""
+par Nfvservicechain.nfviNode[0].Loadbalancer10 myIpAddress 105
+attr mutable ""
+par Nfvservicechain.nfviNode[0].Loadbalancer10 cpuConsumptionPerPacket 0MIPS
+attr immutable ""
+attr unit MIPS
+par Nfvservicechain.nfviNode[0].Loadbalancer10 memoryConsumption 0MB
+attr immutable ""
+attr unit MB
+par Nfvservicechain.nfviNode[0].Loadbalancer10 bandwidthConsumption 0Mbps
+attr immutable ""
+attr unit Mbps
+par Nfvservicechain.nfviNode[0].Firewall10 typename "\"omnet_nfv.Firewall\""
+par Nfvservicechain.nfviNode[0].Firewall10 loadBalancerVIP 0
+attr mutable ""
+par Nfvservicechain.nfviNode[0].Firewall10 myIpAddress 106
+attr mutable ""
+par Nfvservicechain.nfviNode[0].Firewall10 cpuConsumptionPerPacket 0MIPS
+attr unit MIPS
+par Nfvservicechain.nfviNode[0].Firewall10 memoryConsumption 0MB
+attr unit MB
+par Nfvservicechain.nfviNode[0].Firewall10 bandwidthConsumption 0Mbps
 attr unit Mbps
 par Nfvservicechain.nfviNode[0] typename "\"omnet_nfv.Nfvinode\""
 par Nfvservicechain.nfviNode[0] numVnfs 10
@@ -273,8 +374,23 @@ par Nfvservicechain.vnfManager typename "\"omnet_nfv.Vnfmanager\""
 par Nfvservicechain.nfvo typename "\"omnet_nfv.Nfvo\""
 par Nfvservicechain.nfvo placementDelay 100ms
 attr unit ms
+par Nfvservicechain.enterpriseClients[0] typename "\"omnet_nfv.EnterpriseClient\""
+par Nfvservicechain.enterpriseClients[0] enterpriseId 0
+par Nfvservicechain.enterpriseClients[0] serviceChainType "\"Firewall->LoadBalancer->Server\""
+par Nfvservicechain.enterpriseClients[0] desiredServerCount 1
+par Nfvservicechain.enterpriseClients[0] requestTime 2s
+attr unit s
+par Nfvservicechain.enterpriseClients[1] typename "\"omnet_nfv.EnterpriseClient\""
+par Nfvservicechain.enterpriseClients[1] enterpriseId 1
+par Nfvservicechain.enterpriseClients[1] serviceChainType "\"Firewall->LoadBalancer->Server\""
+par Nfvservicechain.enterpriseClients[1] desiredServerCount 2
+par Nfvservicechain.enterpriseClients[1] requestTime 2s
+attr unit s
+par Nfvservicechain.tenantSwitch typename "\"omnet_nfv.TenantSwitch\""
+par Nfvservicechain.tenantSwitch numTenants 2
 par Nfvservicechain typename "\"omnet_nfv.Nfvservicechain\""
 par Nfvservicechain numClients 4
 par Nfvservicechain numNfviNodes 2
+par Nfvservicechain numEnterpriseClients 2
 par Nfvservicechain centralSwitchPorts 6
 

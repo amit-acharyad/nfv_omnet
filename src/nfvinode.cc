@@ -21,6 +21,7 @@
 #include <cstring>
 #include "packet_m.h"
 #include <queue>
+#include "vnfRegistration_m.h"
 
 
 Define_Module(Nfvinode);
@@ -36,64 +37,45 @@ void Nfvinode::initialize()
     availableCpu = totalCpuCapacity;
     availableMemory = totalMemoryCapacity;
     availableBandwidth = totalNetworkBandwidth;
-    internalConnectionsDone=false;
     vnfIdCounter = 0; // Initialize VNF ID counter
 
     EV << "NFVINode " << getId() << " Initialized with capacities: CPU=" << totalCpuCapacity
        << " MEM=" << totalMemoryCapacity << " BW=" << totalNetworkBandwidth << endl;
     EV << "NFVINode[" << getId() << "]: My Data Plane IP: " << dataPlaneIp << endl;
-
-    EV<<"Registering port"<<endl;
-    int myIp = par("dataPlaneIp").intValue();  // or store it in a member variable
-
-        Packet *reg = new Packet("Register");
-        reg->setSourceAddress(myIp);
-        reg->setIsRegistration(true);
-        send(reg, "ethOut", 0);  // assuming 1 ethOut per node, index 0
+}
+int Nfvinode::getEnterpriseIdForVnfIp(int ip) {
+    return vnfIpToEnterpriseId.count(ip) ? vnfIpToEnterpriseId[ip] : -1;
 }
 
 void Nfvinode::handleMessage(cMessage *msg)
 {
-    // Check if it's a management message (VnfDeploymentRequest)
-    VnfDeploymentRequest* vnfRequest = dynamic_cast<VnfDeploymentRequest*>(msg);
-    if (vnfRequest) {
+    // 1. Deployment request
+    if (auto* vnfRequest = dynamic_cast<VnfDeploymentRequest*>(msg)) {
         handleVnfDeploymentRequest(vnfRequest);
         return;
     }
 
-    // Check if it's a data plane packet
-    Packet* packet = dynamic_cast<Packet*>(msg);
-    if (packet) {
-        if (!internalConnectionsDone) {
-            EV << "NFVINode[" << getId() << "]: Buffering packet until wiring is ready.\n";
-            bufferedPackets.push(packet);
-            return;
-        } else {
-            EV << "Handling Packet from gate no " << packet->getArrivalGateId() << endl;
-            handleDataPacket(packet, msg->getArrivalGate());
-            return;
-        }
-    }
-
-
-     if ( strcmp(msg->getName(), "TriggerServiceChainWiring") == 0) {
-        EV << "NFVINode: Received wiring trigger.\n";
-        wireInternalServiceChain(); // call the method we discussed earlier
-        internalConnectionsDone=true;
+    // 2. Trigger wiring event
+    if (strcmp(msg->getName(), "TriggerWiring") == 0) {
+        int enterpriseId = msg->par("enterpriseId").longValue();
+        EV << "NFVINode[" << getId() << "]: Received wiring trigger for Enterprise ID " << enterpriseId << "\n";
+        wireInternalServiceChain(enterpriseId);
         delete msg;
-        while (!bufferedPackets.empty()) {
-                Packet* p = bufferedPackets.front();
-                bufferedPackets.pop();
-                handleDataPacket(p, p->getArrivalGate());
-            }
         return;
     }
-     else {
-         EV_WARN << "NFVINode[" << getId() << "]: Received unhandled message of type "
-                 << msg->getClassName() << ": " << msg->getName() << endl;
-         delete msg;
-     }
+
+    // 3. Data packet – fully handled in one place
+    if (auto* packet = dynamic_cast<Packet*>(msg)) {
+        handleDataPacket(packet, msg->getArrivalGate());
+        return;
+    }
+
+    // 4. Unknown message
+    EV_WARN << "NFVINode[" << getId() << "]: Unknown message type: " << msg->getName() << "\n";
+    delete msg;
 }
+
+
 
 void Nfvinode::handleVnfDeploymentRequest(VnfDeploymentRequest *req)
 {
@@ -181,9 +163,16 @@ void Nfvinode::handleVnfDeploymentRequest(VnfDeploymentRequest *req)
             delete req;
             return;  // Exit without deploying LB
         }
-        // 3. Cast to Loadbalancer* and directly assign vector
-            Loadbalancer* lb = check_and_cast<Loadbalancer*>(vnfModule);
-            lb->setBackendServerIps(backendServerIps);
+            // 3. Cast to Loadbalancer* and directly assign vector
+        Loadbalancer* lb = dynamic_cast<Loadbalancer*>(vnfModule);
+        if (lb == nullptr) {
+            EV_ERROR << "NFVINode: Could not cast " << req->getVnfName()
+                     << " to Loadbalancer*. Check module type and class.\n";
+            delete req;
+            return;
+        }
+        lb->setBackendServerIps(backendServerIps);
+
             EV << "NFVINode[" << getId() << "]: Initialized LoadBalancer with "
                << backendServerIps.size() << " backend servers.\n";
     }
@@ -196,15 +185,21 @@ void Nfvinode::handleVnfDeploymentRequest(VnfDeploymentRequest *req)
     availableMemory -= req->getMemoryRequest();
     availableBandwidth -= req->getBandwidthRequest();
 
-    // Store deployed VNF info
-    DeployedVnfModule deployedVnf;
-    deployedVnf.name = req->getVnfName();
-    deployedVnf.type = req->getVnfType();
-    deployedVnf.ipAddress = req->getVnfIpAddress();
-    deployedVnf.moduleRef = vnfModule;
 
-    deployedVnfsByIp[deployedVnf.ipAddress] = deployedVnf;
-    deployedVnfsByName[deployedVnf.name] = deployedVnf;
+    DeployedVnfModule deployed;
+    deployed.name = req->getVnfName();
+    deployed.type = req->getVnfType();
+    deployed.ipAddress = req->getVnfIpAddress();
+    deployed.moduleRef = vnfModule;  // your dynamically created module
+
+    // Store in per-enterprise service chain
+    int enterpriseId = req->getRequestId();
+    serviceChains[enterpriseId].enterpriseId = enterpriseId;
+    serviceChains[enterpriseId].vnfsOrdered.push_back(deployed);
+
+    // (Optional) global index by IP for data packet routing
+    deployedVnfsByIp[deployed.ipAddress] = deployed;
+    vnfIpToEnterpriseId[req->getVnfIpAddress()] = enterpriseId;
 
     // Send success response
     response->setSuccess(true);
@@ -216,56 +211,186 @@ void Nfvinode::handleVnfDeploymentRequest(VnfDeploymentRequest *req)
        << ", Mem: " << availableMemory << ", BW: " << availableBandwidth << ")" << endl;
 
     send(response, "managementGateOut");
+    if (req->getVnfType() == VNF_TYPE_FIREWALL) {
+        VnfRegistrationMessage *reg = new VnfRegistrationMessage();
+        reg->setVnfIp(req->getVnfIpAddress());
+        reg->setEnterpriseId(req->getRequestId());
+        reg->setNfviNodeId(this->getId());  // or your NFVI node ID
+        send(reg, "ethOut",0);
+    }
+
     delete req;
 }
 
 
 void Nfvinode::handleDataPacket(Packet *packet, cGate *arrivalGate)
 {
-    int destinationIp = packet->getDestinationAddress();
+    int dstIp = packet->getDestinationAddress();
+    std::string gateName = arrivalGate->getName();
 
-    if (arrivalGate->isName("ethIn")) {
-        // Always forward incoming external packets to Firewall
-        bool foundFirewall = false;
+    EV << "NFVINode[" << getId() << "]: Packet arrived at gate: " << gateName << " destined for IP: " << dstIp << "\n";
+
+    if (gateName == "internalIn") {
+        // Internal reply → forward to external network
+        EV << "NFVINode[" << getId() << "]: Packet from internal VNF → sending to ethOut\n";
+        send(packet, "ethOut", 0);
+        return;
+    }
+
+    if (gateName == "ethIn") {
+        int enterpriseId = getEnterpriseIdForVnfIp(dstIp);
+
+        if (serviceChains.count(enterpriseId) == 0) {
+            EV_WARN << "Unknown enterpriseId for IP " << dstIp << ". Dropping.\n";
+            delete packet;
+            return;
+        }
+
+        if (!serviceChains[enterpriseId].wiringDone) {
+            EV << "Wiring not done yet → buffering packet\n";
+            bufferedPacketsPerEnterprise[enterpriseId].push(packet);
+            return;
+        }
+
+        // Forward to first VNF — usually firewall
         for (const auto& [ip, vnf] : deployedVnfsByIp) {
             if (vnf.type == VNF_TYPE_FIREWALL) {
-                send(packet, "internalOut");
-                EV << "NFVINode[" << getId() << "]: Incoming packet forwarded to Firewall ("
-                   << vnf.name << ") setting foundfirewall to true" << endl;
-                foundFirewall=true;
-                break;
+                send(packet, "internalOut", 0); // use mapped gate index if dynamic
+                EV << "Forwarded to Firewall: " << vnf.name << "\n";
+                return;
             }
         }
 
-        if(!foundFirewall){
-            EV_WARN << "NFVINode[" << getId() << "]: No Firewall found. Dropping packet." << endl;
-                    delete packet;
-        }
-
+        EV_WARN << "No Firewall found. Dropping packet.\n";
+        delete packet;
+        return;
     }
 
-    else {
-        // Packet is from an internal VNF
-        cModule* sender = arrivalGate->getOwnerModule();
-        int destIp = packet->getDestinationAddress();
-
-        auto it = deployedVnfsByIp.find(destIp);
-        if (it != deployedVnfsByIp.end()) {
-            // Forward to next internal VNF
-            send(packet, it->second.moduleRef->gate("in"));
-            EV << "NFVINode[" << getId() << "]: Forwarded packet internally from "
-               << sender->getName() << " to " << it->second.name << endl;
-        } else {
-            // Final hop: send packet out
-            send(packet, "ethOut", 0);  // You can match destinationIp to gate index if needed
-            EV << "NFVINode[" << getId() << "]: Packet sent to external network for IP: "
-               << destIp << endl;
-        }
+    // Case: packet from VNF to another VNF or outside
+    auto it = deployedVnfsByIp.find(dstIp);
+    if (it != deployedVnfsByIp.end()) {
+        // Internal delivery to next VNF
+        send(packet, it->second.moduleRef->gate("in"));
+        EV << "Forwarded internally to VNF: " << it->second.name << "\n";
+    } else {
+        // Outgoing delivery
+        send(packet, "ethOut", 0);
+        EV << "Destination not internal → Sent to external network\n";
     }
 }
 
 
 
+
+void Nfvinode::wireInternalServiceChain(int enterpriseId) {
+    auto it = serviceChains.find(enterpriseId);
+    if (it == serviceChains.end() || it->second.wiringDone)
+        return;
+
+    const auto& chain = it->second.vnfsOrdered;
+    if (chain.empty()) {
+        EV_WARN << "NFVINode[" << getId() << "]: No VNFs to wire for enterprise " << enterpriseId << "\n";
+        return;
+    }
+
+    cModule* firewall = nullptr;
+    cModule* loadBalancer = nullptr;
+    std::vector<cModule*> servers;
+
+    // Identify modules
+    for (const auto& vnf : chain) {
+        switch (vnf.type) {
+            case VNF_TYPE_FIREWALL:
+                firewall = vnf.moduleRef;
+                break;
+            case VNF_TYPE_LOADBALANCER:
+                loadBalancer = vnf.moduleRef;
+                break;
+            case VNF_TYPE_SERVER:
+                servers.push_back(vnf.moduleRef);
+                break;
+            default:
+                break;
+        }
+    }
+    int gateIndex;
+    int firewallIp = -1;
+    for (const auto& vnf : serviceChains[enterpriseId].vnfsOrdered) {
+        if (vnf.type == VNF_TYPE_FIREWALL) {
+            firewallIp = vnf.ipAddress;
+            break;
+        }
+    }
+    if (firewallIp == -1) {
+        EV_ERROR << "No firewall found for enterprise " << enterpriseId << "\n";
+        return;
+    }
+
+
+    auto its = vnfIpToInternalGateIndex.find(firewallIp);
+    if (its == vnfIpToInternalGateIndex.end()) {
+        gateIndex = nextAvailableGateIndex++;
+        vnfIpToInternalGateIndex[firewallIp] = gateIndex;
+
+        if (gateSize("internalOut") <= gateIndex) {
+            setGateSize("internalOut", gateIndex + 1);
+        }
+        if (gateSize("internalIn") <= gateIndex) {
+            setGateSize("internalIn", gateIndex + 1);
+        }
+    } else {
+        gateIndex = its->second;
+    }
+
+    // Now you can safely connect:
+    if (firewall && hasGate("internalOut") && firewall->hasGate("in")) {
+        gate("internalOut", gateIndex)->connectTo(firewall->gate("in"));
+        firewall->gate("out")->connectTo(gate("internalIn",gateIndex));
+
+        EV << "Connected internalOut and internal in  [" << gateIndex << "] → Firewall.in and firewall out for enterprise " << enterpriseId << "\n";
+    }
+
+    // Firewall ↔ LoadBalancer
+    if (firewall && loadBalancer) {
+        firewall->gate("outLB")->connectTo(loadBalancer->gate("in"));
+        loadBalancer->gate("out")->connectTo(firewall->gate("inLB"));
+
+        EV << "Connected Firewall.outLB ↔ LoadBalancer.in (bidirectional)\n";
+    }
+
+    // LoadBalancer ↔ Servers (multi-gate)
+    if (loadBalancer && !servers.empty()) {
+        int numServers = servers.size();
+        loadBalancer->setGateSize("outServer", numServers);
+        loadBalancer->setGateSize("inServer", numServers);
+
+        for (int i = 0; i < numServers; ++i) {
+            cModule* server = servers[i];
+            if (!server) continue;
+
+            loadBalancer->gate("outServer", i)->connectTo(server->gate("in"));
+            server->gate("out")->connectTo(loadBalancer->gate("inServer", i));
+            EV << "Connected LoadBalancer.outServer[" << i << "] ↔ " << server->getName() << ".in (bidirectional)\n";
+        }
+    }
+
+
+
+    it->second.wiringDone = true;
+
+    // Replay buffered packets
+    auto& queue = bufferedPacketsPerEnterprise[enterpriseId];
+    while (!queue.empty()) {
+        Packet* pkt = queue.front();
+        queue.pop();
+        handleDataPacket(pkt, pkt->getArrivalGate());
+    }
+
+    EV << "✅ Wired full internal service chain for enterprise " << enterpriseId << "\n";
+}
+
+
+/*
 void Nfvinode::wireInternalServiceChain() {
     cModule* firewall = nullptr;
     cModule* loadBalancer = nullptr;
@@ -315,5 +440,5 @@ void Nfvinode::wireInternalServiceChain() {
     // You can add reverse connections if servers need to reply back
 }
 
-
+*/
 
