@@ -17,9 +17,9 @@
 #define __OMNET_NFV_VNFMANAGER_H_
 
 #include <omnetpp.h>
-#include "nfvMessages_m.h"
-#include "servicemsg_m.h"
-#include "deploymentplan_m.h"
+#include "../messages/nfvMessages_m.h"
+#include "../messages/servicemsg_m.h"
+#include "../messages/deploymentplan_m.h"
 #include <map>
 #include <vector>
 using namespace omnetpp;

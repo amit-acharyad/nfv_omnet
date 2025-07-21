@@ -1,22 +1,7 @@
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
-
 #include "packetSwitch.h"
 #include <omnetpp.h>
-#include "packet_m.h"  // Include your generated message header
-#include "vnfRegistration_m.h"
+#include "../messages/packet_m.h"  // Include your generated message header
+#include "../messages/vnfRegistration_m.h"
 
 Define_Module(PacketSwitch);
 
@@ -88,17 +73,14 @@ void PacketSwitch::handleMessage(cMessage *msg) {
         EV << "Forwarded packet to VNF IP " << destIp << " via toNfviNodes[" << nfviGate << "]\n";
         // Send ACK back to sender
         if(pkt){
-            EV<<"PKT exits"<<endl;
 
             if(pkt->isProbe()){
-                EV<<"PKT is probe true now creating ack exits"<<endl;
 
                    Packet *ack = new Packet("PacketForwardedAck");
                    ack->setSourceAddress(destIp);
                    ack->setDestinationAddress(pkt->getSourceAddress());
                    ack->setIsRegistration(false);
                    ack->setIsProbe(false);
-                   EV<<"Sending ack via port our"<<endl;
                    send(ack, "portOut", arrivalGateIndex);
                    EV<<"Sent ack"<<endl;
                    }

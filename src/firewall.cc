@@ -16,7 +16,7 @@
 
 
 #include <omnetpp.h>
-#include "packet_m.h"
+#include "../messages/packet_m.h"
 #include "firewall.h"
 #include <cstring>
 using namespace omnetpp;

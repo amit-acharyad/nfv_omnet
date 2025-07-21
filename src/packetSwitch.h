@@ -17,7 +17,7 @@
 #define __OMNET_NFV_PACKETSWITCH_H_
 
 #include <omnetpp.h>
-#include "vnfRegistration_m.h"
+#include "../messages/vnfRegistration_m.h"
 
 
 using namespace omnetpp;

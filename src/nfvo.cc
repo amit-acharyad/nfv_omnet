@@ -1,19 +1,24 @@
 #include "nfvo.h"
-#include "servicemsg_m.h"
-#include "deploymentplan_m.h"
-#include "nfvMessages_m.h"
+#include "../messages/servicemsg_m.h"
+#include "../messages/deploymentplan_m.h"
+#include "../messages/nfvMessages_m.h"
 #include <string>
 
 Define_Module(Nfvo);
 
 void Nfvo::initialize() {
-    // Nothing special at startup
+    int numNfviNodes=par("numNfviNodes");
+    for(int i=0;i<numNfviNodes;i++){
+        nfviNodeResources[i]={10000, 8192, 1000};
+        nfviNodeIds.push_back(i);
+    }
+    EV<<"Resources of"<<numNfviNodes<<"Initialized"<<endl;
 }
 
 void Nfvo::handleMessage(cMessage *msg) {
     if (auto *req = dynamic_cast<ServiceChainRequest *>(msg)) {
         handleServiceChainRequest(req);
-    }else if (auto *res = dynamic_cast<VnfDeploymentResponse *>(msg)) {
+    }else if (auto *res = dynamic_cast<ServiceChainAck *>(msg)) {
         sendServiceChainAck(res);
     }
     else {
@@ -28,12 +33,33 @@ void Nfvo::handleServiceChainRequest(ServiceChainRequest *req) {
     int enterpriseId = req->getEnterpriseId();
     std::string chainType = req->getChainType();
     int numServers = req->getDesiredServerCount();
-
+    NfviAvailableResources needed=computeTotalResources(numServers);
     // For now, pick NFVINode 0 statically
-    int nfviNodeId = 0;
+    int nfviNodeId = -1;
+    int totalNodes = nfviNodeIds.size();
 
-    sendDeploymentPlan(enterpriseId, nfviNodeId, chainType, numServers);
+    for (int i = 0; i < totalNodes; ++i) {
+        // Round-robin index
+        int index = (lastUsedNodeIndex + 1 + i) % totalNodes;
+        int nodeId = nfviNodeIds[index];
 
+        const auto& resources = nfviNodeResources[nodeId];
+
+        if (resources.cpu >= needed.cpu &&
+            resources.memory >= needed.memory &&
+            resources.bandwidth >= needed.bandwidth) {
+            nfviNodeId = nodeId;
+            lastUsedNodeIndex = index; // update for next round
+            break;
+        }
+    }
+
+      if (nfviNodeId != -1) {
+          sendDeploymentPlan(enterpriseId, nfviNodeId, chainType, numServers);
+      } else {
+          EV << "NFVO: No NFVI node with enough resources for request from enterprise " << enterpriseId << "\n";
+          // optionally send rejection
+      }
 
     delete req;
 }
@@ -85,13 +111,23 @@ void Nfvo::sendDeploymentPlan(int enterpriseId, int nfviNodeId, const std::strin
 
     send(plan, "vnfMgrGateOut");
 }
+NfviAvailableResources Nfvo:: computeTotalResources(int numServers) {
+    // Static resource costs per VNF
+    const double serverCpu = 1000, serverMem = 512, serverBw = 100;
+    const double lbCpu = 500, lbMem = 256, lbBw = 50;
+    const double fwCpu = 700, fwMem = 256, fwBw = 70;
 
-void Nfvo::sendServiceChainAck(VnfDeploymentResponse *resp) {
+    NfviAvailableResources total;
 
-    ServiceChainAck *ack=new ServiceChainAck();
-    ack->setEnterpriseId(resp->getRequestId());
-    ack->setSuccess(true);
-    ack->setMessageinfo("Successfully deployed service chain");
-    ack->setNfviNodeId(0);
+    // For each service chain, add one firewall, one load balancer, one server
+    total.cpu = numServers * ( serverCpu)+fwCpu+lbCpu;
+    total.memory = numServers * (serverMem)+fwMem+lbMem;
+    total.bandwidth = numServers * ( serverBw)+fwBw+lbBw;
+
+    return total;
+}
+
+void Nfvo::sendServiceChainAck(ServiceChainAck *ack) {
+    nfviNodeResources[ack->getNfviNodeId()] = {ack->getAvailableCPU(), ack->getAvailableMemory(), ack->getAvailableBandwidth()};
     send(ack, "tenantSwitchOut");
 }

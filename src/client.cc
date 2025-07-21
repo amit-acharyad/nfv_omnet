@@ -1,5 +1,5 @@
 #include "client.h"
-#include "packet_m.h"
+#include "../messages/packet_m.h"
 Define_Module(Client);
 void Client::initialize() {
     int sourceAddress = par("sourceAddress");
@@ -8,7 +8,6 @@ void Client::initialize() {
     reg->setSourceAddress(sourceAddress);
     reg->setIsRegistration(true);
     send(reg, "ethOut");
-
     sendEvent = new cMessage("sendEvent");
     sendInterval = par("sendInterval");
 
@@ -56,7 +55,6 @@ void Client::handleMessage(cMessage *msg) {
         delete msg;
     }
 }
-
 
 void Client::finish() {
     cancelAndDelete(sendEvent);

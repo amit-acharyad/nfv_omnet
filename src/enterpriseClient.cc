@@ -14,7 +14,7 @@
 // 
 
 #include "enterpriseClient.h"
-#include "servicemsg_m.h"
+#include "../messages/servicemsg_m.h"
 
 Define_Module(EnterpriseClient);
 

@@ -1,22 +1,8 @@
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
 
 #include "vnfmanager.h"
-#include "nfvMessages_m.h"
-#include "servicemsg_m.h"
-#include "deploymentplan_m.h"
+#include "../messages/nfvMessages_m.h"
+#include "../messages/servicemsg_m.h"
+#include "../messages/deploymentplan_m.h"
 Define_Module(Vnfmanager);
 
 void Vnfmanager::initialize()
@@ -79,6 +65,7 @@ void Vnfmanager::handleDeploymentPlan(VnfDeploymentPlan* plan) {
         VnfDeploymentRequest *req = new VnfDeploymentRequest("VnfDeploymentRequest");
         req->setVnfName(bp.getVnfName());
         req->setVnfType(bp.getVnfType());
+        req->setNfviNodeId(plan->getNfviNodeId());
         req->setCpuRequest(bp.getCpu());
         req->setRequestId(enterpriseId);
         //setting requestid to enterprise id for now
@@ -122,15 +109,23 @@ void Vnfmanager::handleVnfDeploymentResponse(VnfDeploymentResponse *resp) {
 
     if (receivedDeploymentsPerEnterprise[enterpriseId] == expectedDeploymentsPerEnterprise[enterpriseId]) {
         EV << "All VNFs deployed for enterprise " << enterpriseId << ". Sending ack and wiring trigger.\n";
-
         // Send response to NFVO
-        send(resp, "nfvoGateOut");
+        ServiceChainAck *ack=new ServiceChainAck();
+        ack->setEnterpriseId(resp->getRequestId());
+        ack->setSuccess(true);
+        ack->setMessageinfo("Successfully deployed service chain");
+        ack->setNfviNodeId(resp->getNfviNodeId());
+        ack->setAvailableCPU(resp->getAvailableCPU());
+        ack->setAvailableMemory(resp->getAvailableMemory());
+        ack->setAvailableBandwidth(resp->getAvailableBandwidth());
+
+
+        send(ack, "nfvoGateOut");
         EV<<"Sent response to nfvoGateOut"<<endl;
         // Trigger wiring
         cMessage* wiringTrigger = new cMessage("TriggerWiring");
         wiringTrigger->addPar("enterpriseId") = enterpriseId;
-        EV<<"Triggeringg message set now sending"<<endl;
-        send(wiringTrigger, "nfviNodeGateOut", 0);  // or choose target node appropriately
+        send(wiringTrigger, "nfviNodeGateOut", resp->getNfviNodeId());  // or choose target node appropriately
         EV<<"Sent the wiring trigger"<<endl;
     } else {
         delete resp;  // Only delete if not forwarded
@@ -141,35 +136,6 @@ void Vnfmanager::handleVnfDeploymentResponse(VnfDeploymentResponse *resp) {
 
 }
 
-/*
-void Vnfmanager::handleVnfDeploymentResponse(VnfDeploymentResponse *resp) {
-    if (resp->getSuccess()) {
-        EV << "VNFManager: Deployment succeeded for " << resp->getVnfName() << "\n";
-        ++receivedDeployments;
-
-        // Optional: store mapping of deployed VNFs
-    } else {
-        EV_WARN << "VNFManager: Deployment failed for " << resp->getVnfName()
-                << " Reason: " << resp->getInfoMessage() << "\n";
-    }
-    int expectedDeployments=serviceChainBlueprint.size();
-
-    if (receivedDeployments == expectedDeployments) {
-        EV << "All VNFs deployed successfully. Triggering service chain wiring...\n";
-              cMessage* wiringTrigger = new cMessage("TriggerServiceChainWiring");
-
-        send(wiringTrigger, "nfviNodeGateOut", 0);
-        // Send wiring trigger to each NFVINode (loop if multiple NFVINodes)
-//        for (int i = 0; i < numNfviNodes; ++i) {
-//            cMessage* wiringTrigger = new cMessage("TriggerServiceChainWiring");
-//            send(wiringTrigger, "nfviNodeGateOut", i);  // assumes vector gate
-//        }
-    }
-
-    delete resp;
-}
-
-*/
 void Vnfmanager::handleSelfMessage(cMessage *msg) {
    EV<<"VNF Manager self message"<<endl;
     delete msg; // Delete the self-message

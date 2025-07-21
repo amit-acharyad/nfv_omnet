@@ -1,15 +1,16 @@
-../out/clang-release/src/vnfmanager.o: vnfmanager.cc vnfmanager.h \
-  C:/Users/Acer/Desktop/omnetpp-6.1/include/omnetpp.h nfvMessages_m.h \
-  vnftype_m.h servicemsg_m.h deploymentplan_m.h
+out/clang-release//src/vnfmanager.o: src/vnfmanager.cc src/vnfmanager.h \
+  C:/Users/Acer/Desktop/omnetpp-6.1/include/omnetpp.h \
+  src/../messages/nfvMessages_m.h src/../messages/vnftype_m.h \
+  src/../messages/servicemsg_m.h src/../messages/deploymentplan_m.h
 
-vnfmanager.h:
+src/vnfmanager.h:
 
 C:/Users/Acer/Desktop/omnetpp-6.1/include/omnetpp.h:
 
-nfvMessages_m.h:
+src/../messages/nfvMessages_m.h:
 
-vnftype_m.h:
+src/../messages/vnftype_m.h:
 
-servicemsg_m.h:
+src/../messages/servicemsg_m.h:
 
-deploymentplan_m.h:
+src/../messages/deploymentplan_m.h:

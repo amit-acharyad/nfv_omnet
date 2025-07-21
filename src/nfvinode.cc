@@ -1,31 +1,15 @@
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
-
 #include "nfvinode.h"
-#include "nfvMessages_m.h"
+#include "../messages/nfvMessages_m.h"
 #include "firewall.h"
 #include "loadbalancer.h"
 #include "server.h"
 #include <cstring>
-#include "packet_m.h"
+#include "../messages/packet_m.h"
 #include <queue>
-#include "vnfRegistration_m.h"
+#include "../messages/vnfRegistration_m.h"
 
 
 Define_Module(Nfvinode);
-
 void Nfvinode::initialize()
 {
     EV << "NFVINode[" << getId() << "]: Initializing." << endl;
@@ -86,7 +70,7 @@ void Nfvinode::handleVnfDeploymentRequest(VnfDeploymentRequest *req)
     response->setVnfName(req->getVnfName());
     response->setDeployedVnfIp(0); // Default to 0, set on success
     response->setRequestId(req->getRequestId());
-
+    response->setNfviNodeId(req->getNfviNodeId());
     // Check resource availability
     if (req->getCpuRequest() > availableCpu ||
         req->getMemoryRequest() > availableMemory ||
@@ -252,14 +236,16 @@ void Nfvinode::handleDataPacket(Packet *packet, cGate *arrivalGate)
             return;
         }
 
-        // Forward to first VNF — usually firewall
         for (const auto& [ip, vnf] : deployedVnfsByIp) {
-            if (vnf.type == VNF_TYPE_FIREWALL) {
-                send(packet, "internalOut", 0); // use mapped gate index if dynamic
-                EV << "Forwarded to Firewall: " << vnf.name << "\n";
-                return;
+            // Check if it's a firewall AND if its IP matches the packet's destination
+            if (vnf.type == VNF_TYPE_FIREWALL && ip == dstIp) {
+                int gateNo = vnfIpToInternalGateIndex[ip];
+                send(packet, "internalOut", gateNo);
+                EV << "Forwarded to Firewall (matching IP " << vnf.name << "): " << dstIp << "\n";
+                return; // Packet sent, exit the loop/function
             }
         }
+
 
         EV_WARN << "No Firewall found. Dropping packet.\n";
         delete packet;
@@ -389,56 +375,4 @@ void Nfvinode::wireInternalServiceChain(int enterpriseId) {
     EV << "✅ Wired full internal service chain for enterprise " << enterpriseId << "\n";
 }
 
-
-/*
-void Nfvinode::wireInternalServiceChain() {
-    cModule* firewall = nullptr;
-    cModule* loadBalancer = nullptr;
-    std::vector<cModule*> servers;
-
-    // Identify VNF types
-    for (const auto& [name, vnf] : deployedVnfsByName) {
-        switch (vnf.type) {
-            case VNF_TYPE_FIREWALL:
-                firewall = vnf.moduleRef;
-                break;
-            case VNF_TYPE_LOADBALANCER:
-                loadBalancer = vnf.moduleRef;
-                break;
-            case VNF_TYPE_SERVER:
-                servers.push_back(vnf.moduleRef);
-                break;
-            case VNF_TYPE_UNKNOWN:
-                break;
-        }
-    }
-
-    // Connect Firewall to LoadBalancer (if both exist)
-    if (firewall && loadBalancer) {
-        firewall->gate("outLB")->connectTo(loadBalancer->gate("in"));
-        loadBalancer->gate("out")->connectTo(firewall->gate("inLB"));
-
-       gate("internalOut") ->connectTo(firewall->gate("in"));
-       firewall->gate("out")->connectTo(gate("internalIn"));
-        EV << "NFVINode: Connected Firewall <--> LoadBalancer\n";
-    }
-
-    // Connect LoadBalancer to all Servers (if any)
-    if (loadBalancer && !servers.empty()) {
-        int serverIndex = 0;
-        loadBalancer->setGateSize("outServer", servers.size());
-         loadBalancer->setGateSize("inServer", servers.size());
-        for (auto* server : servers) {
-            loadBalancer->gate("outServer", serverIndex)->connectTo(server->gate("in"));
-            server->gate("out")->connectTo(loadBalancer->gate("inServer",serverIndex));
-            EV << "Connected LoadBalancer.outServer[" << serverIndex << "] -> "
-               << server->getName() << ".in and server out to loadbalancer inserver\n";
-            ++serverIndex;
-        }
-    }
-
-    // You can add reverse connections if servers need to reply back
-}
-
-*/
 

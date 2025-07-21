@@ -17,7 +17,7 @@
 #define __OMNET_NFV_ENTERPRISECLIENT_H_
 
 #include <omnetpp.h>
-#include "servicemsg_m.h"
+#include "../messages/servicemsg_m.h"
 using namespace omnetpp;
 
 

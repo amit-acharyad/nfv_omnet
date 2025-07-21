@@ -1,22 +1,23 @@
-../out/clang-release/src/nfvinode.o: nfvinode.cc nfvinode.h \
-  C:/Users/Acer/Desktop/omnetpp-6.1/include/omnetpp.h nfvMessages_m.h \
-  vnftype_m.h packet_m.h firewall.h loadbalancer.h server.h \
-  vnfRegistration_m.h
+out/clang-release//src/nfvinode.o: src/nfvinode.cc src/nfvinode.h \
+  C:/Users/Acer/Desktop/omnetpp-6.1/include/omnetpp.h \
+  src/../messages/nfvMessages_m.h src/../messages/vnftype_m.h \
+  src/../messages/packet_m.h src/firewall.h src/loadbalancer.h \
+  src/server.h src/../messages/vnfRegistration_m.h
 
-nfvinode.h:
+src/nfvinode.h:
 
 C:/Users/Acer/Desktop/omnetpp-6.1/include/omnetpp.h:
 
-nfvMessages_m.h:
+src/../messages/nfvMessages_m.h:
 
-vnftype_m.h:
+src/../messages/vnftype_m.h:
 
-packet_m.h:
+src/../messages/packet_m.h:
 
-firewall.h:
+src/firewall.h:
 
-loadbalancer.h:
+src/loadbalancer.h:
 
-server.h:
+src/server.h:
 
-vnfRegistration_m.h:
+src/../messages/vnfRegistration_m.h:

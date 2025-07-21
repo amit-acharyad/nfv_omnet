@@ -1,28 +1,10 @@
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
-
 package omnet_nfv;
-
-
-
 network Nfvservicechain
 {
     parameters:
         int numClients = default(4);
         int numNfviNodes = default(2);
-        int numEnterpriseClients=default(2);
+        int numEnterpriseClients=default(4);
         int centralSwitchPorts = default(numClients + numNfviNodes);
 
     types:
@@ -33,8 +15,12 @@ network Nfvservicechain
         client[numClients]: Client {
             parameters:
                 sourceAddress = index + 1;
-                destinationAddress = 106; 
-        }
+                
+destinationAddress = 
+            (index % 4 == 0) ? 102 :
+            (index % 4 == 1) ? 106 :
+            (index % 4 == 2) ? 109 :
+                               113;        }
         centralSwitch: PacketSwitch {
             parameters:
                 numPorts = parent.centralSwitchPorts;
@@ -47,14 +33,17 @@ network Nfvservicechain
                 networkBandwidth = 1000 Mbps;
         }
         vnfManager: Vnfmanager;
-        nfvo: Nfvo;
+        nfvo: Nfvo{
+        parameters:
+           numNfviNodes= parent.numNfviNodes;
+        };
         enterpriseClients[numEnterpriseClients]:EnterpriseClient{
         parameters:
-             enterpriseId=index;
+         enterpriseId=index;
          serviceChainType="Firewall->LoadBalancer->Server";
-         desiredServerCount=1+index;
+         desiredServerCount=1+index%2;
          requestTime =2 s ;
-            
+       
         };
         tenantSwitch:TenantSwitch{
         parameters:
@@ -62,7 +51,7 @@ network Nfvservicechain
         }
 
     connections allowunconnected:
-        //connect clinetts and centralpacketswitch
+        //connect clients and centralpacketswitch
         for i = 0..numClients - 1 {
             
             client[i].ethOut --> C--> centralSwitch.portIn[i];

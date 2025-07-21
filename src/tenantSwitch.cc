@@ -1,6 +1,5 @@
-
 #include "tenantSwitch.h"
-#include "servicemsg_m.h"
+#include "../messages/servicemsg_m.h"
 Define_Module(TenantSwitch);
 
 void TenantSwitch::initialize()

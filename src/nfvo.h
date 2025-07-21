@@ -17,24 +17,35 @@
 #define __OMNET_NFV_NFVO_H_
 
 #include <omnetpp.h>
-#include "servicemsg_m.h"
-#include "nfvMessages_m.h"
-
-#include "deploymentplan_m.h"
+#include "../messages/servicemsg_m.h"
+#include "../messages/nfvMessages_m.h"
+#include "../messages/deploymentplan_m.h"
 using namespace omnetpp;
+struct NfviAvailableResources {
+    double cpu;
+    double memory;
+    double bandwidth;
+};
+
+
 
 class Nfvo : public cSimpleModule
 {
   private:
     int nextAckId = 0;
-
   protected:
+    std::map<int, NfviAvailableResources> nfviNodeResources; // nodeId -> available resources
+    std::vector<int> nfviNodeIds; // Stores list of node IDs in insertion order
+    int lastUsedNodeIndex = -1;   // Index of last chosen node in the vector
+
+
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
 
     void handleServiceChainRequest(ServiceChainRequest *req);
     void sendDeploymentPlan(int enterpriseId, int nfviNodeId, const std::string& chainType, int numServers);
-    void sendServiceChainAck(VnfDeploymentResponse *resp);
+    void sendServiceChainAck(ServiceChainAck *ack);
+    NfviAvailableResources  computeTotalResources(int numServers);
 };
 
 #endif

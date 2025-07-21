@@ -35,22 +35,30 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 # Object files for local .cc, .msg and .sm files
 OBJS = \
     $O/src/client.o \
+    $O/src/enterpriseClient.o \
     $O/src/firewall.o \
     $O/src/loadbalancer.o \
     $O/src/nfvinode.o \
     $O/src/nfvo.o \
     $O/src/packetSwitch.o \
     $O/src/server.o \
+    $O/src/tenantSwitch.o \
     $O/src/vnfmanager.o \
-    $O/src/nfvMessages_m.o \
-    $O/src/packet_m.o \
-    $O/src/servicemsg_m.o 
+    $O/messages/deploymentplan_m.o \
+    $O/messages/nfvMessages_m.o \
+    $O/messages/packet_m.o \
+    $O/messages/servicemsg_m.o \
+    $O/messages/vnfRegistration_m.o \
+    $O/messages/vnftype_m.o
 
 # Message files
 MSGFILES = \
-    src/nfvMessages.msg \
-    src/packet.msg \
-    src/servicemsg.msg
+    messages/deploymentplan.msg \
+    messages/nfvMessages.msg \
+    messages/packet.msg \
+    messages/servicemsg.msg \
+    messages/vnfRegistration.msg \
+    messages/vnftype.msg
 
 # SM files
 SMFILES =
