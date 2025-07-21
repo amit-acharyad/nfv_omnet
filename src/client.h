@@ -26,7 +26,6 @@ protected:
     int maxRetries = 2;              // Optional limit
     int retryCount = 0;
     int destinationIp;
-//    bool requestCompleted = false;
 
 
   protected:

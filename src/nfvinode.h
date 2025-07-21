@@ -37,7 +37,7 @@ class Nfvinode : public cSimpleModule
 {
   protected:
     //Current available resources
-    int dataPlaneIp;
+    int id;
     double availableCpu;
     double availableMemory;
     double availableBandwidth;

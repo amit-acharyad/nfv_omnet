@@ -3,7 +3,15 @@
 Define_Module(Client);
 void Client::initialize() {
     int sourceAddress = par("sourceAddress");
-    destinationIp = par("destinationAddress");
+    int index = getIndex();
+    int destAddr;
+    switch (index % 4) {
+        case 0: destAddr = 102; break;
+        case 1: destAddr = 106; break;
+        case 2: destAddr = 109; break;
+        case 3: destAddr = 113; break;
+    }
+    destinationIp = destAddr;
     Packet *reg = new Packet("Register");
     reg->setSourceAddress(sourceAddress);
     reg->setIsRegistration(true);

@@ -13,19 +13,18 @@ Define_Module(Nfvinode);
 void Nfvinode::initialize()
 {
     EV << "NFVINode[" << getId() << "]: Initializing." << endl;
-    dataPlaneIp = par("dataPlaneIp").intValue();
     totalCpuCapacity = par("cpuCapacity").doubleValue(); // Get as double
     totalMemoryCapacity = par("memoryCapacity").doubleValue(); // Get as double
     totalNetworkBandwidth = par("networkBandwidth").doubleValue(); // Get as double
-
+    id=getIndex();
     availableCpu = totalCpuCapacity;
     availableMemory = totalMemoryCapacity;
     availableBandwidth = totalNetworkBandwidth;
     vnfIdCounter = 0; // Initialize VNF ID counter
 
-    EV << "NFVINode " << getId() << " Initialized with capacities: CPU=" << totalCpuCapacity
+    EV << "NFVINode " << id << " Initialized with capacities: CPU=" << totalCpuCapacity
        << " MEM=" << totalMemoryCapacity << " BW=" << totalNetworkBandwidth << endl;
-    EV << "NFVINode[" << getId() << "]: My Data Plane IP: " << dataPlaneIp << endl;
+    EV << "NFVINode[" << id<< "]"<<endl;
 }
 int Nfvinode::getEnterpriseIdForVnfIp(int ip) {
     return vnfIpToEnterpriseId.count(ip) ? vnfIpToEnterpriseId[ip] : -1;

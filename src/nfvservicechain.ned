@@ -12,43 +12,13 @@ network Nfvservicechain
             datarate = 100Mbps;
         }
     submodules:
-        client[numClients]: Client {
-            parameters:
-                sourceAddress = index + 1;
-                
-destinationAddress = 
-            (index % 4 == 0) ? 102 :
-            (index % 4 == 1) ? 106 :
-            (index % 4 == 2) ? 109 :
-                               113;        }
-        centralSwitch: PacketSwitch {
-            parameters:
-                numPorts = parent.centralSwitchPorts;
-        }
-        nfviNode[numNfviNodes]: Nfvinode {
-            parameters:
-                dataPlaneIp = 10 + index;
-                cpuCapacity = 10000 MIPS;
-                memoryCapacity = 8192 MB;
-                networkBandwidth = 1000 Mbps;
-        }
+        client[numClients]: Client;
+        centralSwitch: PacketSwitch;
+        nfviNode[numNfviNodes]: Nfvinode ;
         vnfManager: Vnfmanager;
-        nfvo: Nfvo{
-        parameters:
-           numNfviNodes= parent.numNfviNodes;
-        };
-        enterpriseClients[numEnterpriseClients]:EnterpriseClient{
-        parameters:
-         enterpriseId=index;
-         serviceChainType="Firewall->LoadBalancer->Server";
-         desiredServerCount=1+index%2;
-         requestTime =2 s ;
-       
-        };
-        tenantSwitch:TenantSwitch{
-        parameters:
-        	numTenants=parent.numEnterpriseClients;
-        }
+        nfvo: Nfvo;
+        enterpriseClients[numEnterpriseClients]:EnterpriseClient;
+        tenantSwitch:TenantSwitch;
 
     connections allowunconnected:
         //connect clients and centralpacketswitch

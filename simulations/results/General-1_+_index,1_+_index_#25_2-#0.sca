@@ -1,16 +1,16 @@
 version 3
-run General-0-20250721-12:56:29-8644
+run General-0-20250722-00:25:22-8548
 attr configname General
-attr datetime 20250721-12:56:29
-attr datetimef 20250721-125629
+attr datetime 20250722-00:25:22
+attr datetimef 20250722-002522
 attr experiment General
 attr inifile omnetpp.ini
-attr iterationvars ""
-attr iterationvarsd ""
-attr iterationvarsf ""
-attr measurement ""
+attr iterationvars "$0=1 + index, $1=1 + index % 2"
+attr iterationvarsd 1_+_index/1_+_index_#25_2
+attr iterationvarsf 1_+_index,1_+_index_#25_2-
+attr measurement "$0=1 + index, $1=1 + index % 2"
 attr network omnet_nfv.Nfvservicechain
-attr processid 8644
+attr processid 8548
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -18,8 +18,32 @@ attr runnumber 0
 attr seedset 0
 config network omnet_nfv.Nfvservicechain
 config sim-time-limit 60s
-config Nfvservicechain.numClients 4
-config Nfvservicechain.numNfviNodes 2
+config *.numClients 4
+config *.numNfviNodes 2
+config *.numEnterpriseClients 4
+config *.centralSwitchPorts 6
+config *.client[*].sourceAddress "1 + index"
+config *.centralSwitch.numPorts parent.centralSwitchPorts
+config *.nfviNode[*].cpuCapacity "10000 MIPS"
+config *.nfviNode[*].memoryCapacity "8192 MB"
+config *.nfviNode[*].networkBandwidth "1000 Mbps"
+config *.nfvo.numNfviNodes parent.numNfviNodes
+config *.enterpriseClients[*].enterpriseId index
+config *.enterpriseClients[*].serviceChainType "\"Firewall->LoadBalancer->Server\""
+config *.enterpriseClients[*].desiredServerCount "1 + index % 2"
+config *.enterpriseClients[*].requestTime 2s
+config *.tenantSwitch.numTenants parent.numEnterpriseClients
+config *.nfviNode[*].Server*.cpuConsumptionPerRequest "1000 MIPS"
+config *.nfviNode[*].Server*.memoryConsumption "512 MB"
+config *.nfviNode[*].Server*.bandwidthConsumption "100 Mbps"
+config *.nfviNode[*].Firewall*.cpuConsumptionPerPacket "700 MIPS"
+config *.nfviNode[*].Firewall*.memoryConsumption "256 MB"
+config *.nfviNode[*].Firewall*.bandwidthConsumption "70 Mbps"
+config *.nfviNode[*].Firewall*.loadBalancerVIP 1
+config *.nfviNode[*].Loadbalancer*.cpuConsumptionPerPacket "500 MIPS"
+config *.nfviNode[*].Loadbalancer*.memoryConsumption "256 MB"
+config *.nfviNode[*].Loadbalancer*.bandwidthConsumption "50 Mbps"
+config *.nfviNode[*].*.myIpAddress 2
 
 par Nfvservicechain.client[0].ethOut.channel typename "\"omnet_nfv.Nfvservicechain.C\""
 par Nfvservicechain.client[0].ethOut.channel disabled false
@@ -311,43 +335,39 @@ par Nfvservicechain.client[0] typename "\"omnet_nfv.Client\""
 par Nfvservicechain.client[0] sendInterval 3s
 attr unit s
 par Nfvservicechain.client[0] sourceAddress 1
-par Nfvservicechain.client[0] destinationAddress 102
 par Nfvservicechain.client[1] typename "\"omnet_nfv.Client\""
 par Nfvservicechain.client[1] sendInterval 3s
 attr unit s
 par Nfvservicechain.client[1] sourceAddress 2
-par Nfvservicechain.client[1] destinationAddress 106
 par Nfvservicechain.client[2] typename "\"omnet_nfv.Client\""
 par Nfvservicechain.client[2] sendInterval 3s
 attr unit s
 par Nfvservicechain.client[2] sourceAddress 3
-par Nfvservicechain.client[2] destinationAddress 109
 par Nfvservicechain.client[3] typename "\"omnet_nfv.Client\""
 par Nfvservicechain.client[3] sendInterval 3s
 attr unit s
 par Nfvservicechain.client[3] sourceAddress 4
-par Nfvservicechain.client[3] destinationAddress 113
 par Nfvservicechain.centralSwitch typename "\"omnet_nfv.PacketSwitch\""
 par Nfvservicechain.centralSwitch numPorts 6
 par Nfvservicechain.nfviNode[0].Server001 typename "\"omnet_nfv.Server\""
 par Nfvservicechain.nfviNode[0].Server001 myIpAddress 100
 attr mutable ""
-par Nfvservicechain.nfviNode[0].Server001 cpuConsumptionPerRequest 0MIPS
+par Nfvservicechain.nfviNode[0].Server001 cpuConsumptionPerRequest 1000MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[0].Server001 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[0].Server001 memoryConsumption 512MB
 attr unit MB
-par Nfvservicechain.nfviNode[0].Server001 bandwidthConsumption 0MIPS
-attr unit MIPS
+par Nfvservicechain.nfviNode[0].Server001 bandwidthConsumption 100Mbps
+attr unit Mbps
 par Nfvservicechain.nfviNode[0].Loadbalancer00 typename "\"omnet_nfv.Loadbalancer\""
 par Nfvservicechain.nfviNode[0].Loadbalancer00 myIpAddress 101
 attr mutable ""
-par Nfvservicechain.nfviNode[0].Loadbalancer00 cpuConsumptionPerPacket 0MIPS
+par Nfvservicechain.nfviNode[0].Loadbalancer00 cpuConsumptionPerPacket 500MIPS
 attr immutable ""
 attr unit MIPS
-par Nfvservicechain.nfviNode[0].Loadbalancer00 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[0].Loadbalancer00 memoryConsumption 256MB
 attr immutable ""
 attr unit MB
-par Nfvservicechain.nfviNode[0].Loadbalancer00 bandwidthConsumption 0Mbps
+par Nfvservicechain.nfviNode[0].Loadbalancer00 bandwidthConsumption 50Mbps
 attr immutable ""
 attr unit Mbps
 par Nfvservicechain.nfviNode[0].Firewall00 typename "\"omnet_nfv.Firewall\""
@@ -355,31 +375,31 @@ par Nfvservicechain.nfviNode[0].Firewall00 loadBalancerVIP 0
 attr mutable ""
 par Nfvservicechain.nfviNode[0].Firewall00 myIpAddress 102
 attr mutable ""
-par Nfvservicechain.nfviNode[0].Firewall00 cpuConsumptionPerPacket 0MIPS
+par Nfvservicechain.nfviNode[0].Firewall00 cpuConsumptionPerPacket 700MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[0].Firewall00 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[0].Firewall00 memoryConsumption 256MB
 attr unit MB
-par Nfvservicechain.nfviNode[0].Firewall00 bandwidthConsumption 0Mbps
+par Nfvservicechain.nfviNode[0].Firewall00 bandwidthConsumption 70Mbps
 attr unit Mbps
 par Nfvservicechain.nfviNode[0].Server201 typename "\"omnet_nfv.Server\""
 par Nfvservicechain.nfviNode[0].Server201 myIpAddress 107
 attr mutable ""
-par Nfvservicechain.nfviNode[0].Server201 cpuConsumptionPerRequest 0MIPS
+par Nfvservicechain.nfviNode[0].Server201 cpuConsumptionPerRequest 1000MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[0].Server201 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[0].Server201 memoryConsumption 512MB
 attr unit MB
-par Nfvservicechain.nfviNode[0].Server201 bandwidthConsumption 0MIPS
-attr unit MIPS
+par Nfvservicechain.nfviNode[0].Server201 bandwidthConsumption 100Mbps
+attr unit Mbps
 par Nfvservicechain.nfviNode[0].Loadbalancer20 typename "\"omnet_nfv.Loadbalancer\""
 par Nfvservicechain.nfviNode[0].Loadbalancer20 myIpAddress 108
 attr mutable ""
-par Nfvservicechain.nfviNode[0].Loadbalancer20 cpuConsumptionPerPacket 0MIPS
+par Nfvservicechain.nfviNode[0].Loadbalancer20 cpuConsumptionPerPacket 500MIPS
 attr immutable ""
 attr unit MIPS
-par Nfvservicechain.nfviNode[0].Loadbalancer20 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[0].Loadbalancer20 memoryConsumption 256MB
 attr immutable ""
 attr unit MB
-par Nfvservicechain.nfviNode[0].Loadbalancer20 bandwidthConsumption 0Mbps
+par Nfvservicechain.nfviNode[0].Loadbalancer20 bandwidthConsumption 50Mbps
 attr immutable ""
 attr unit Mbps
 par Nfvservicechain.nfviNode[0].Firewall20 typename "\"omnet_nfv.Firewall\""
@@ -387,16 +407,14 @@ par Nfvservicechain.nfviNode[0].Firewall20 loadBalancerVIP 0
 attr mutable ""
 par Nfvservicechain.nfviNode[0].Firewall20 myIpAddress 109
 attr mutable ""
-par Nfvservicechain.nfviNode[0].Firewall20 cpuConsumptionPerPacket 0MIPS
+par Nfvservicechain.nfviNode[0].Firewall20 cpuConsumptionPerPacket 700MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[0].Firewall20 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[0].Firewall20 memoryConsumption 256MB
 attr unit MB
-par Nfvservicechain.nfviNode[0].Firewall20 bandwidthConsumption 0Mbps
+par Nfvservicechain.nfviNode[0].Firewall20 bandwidthConsumption 70Mbps
 attr unit Mbps
 par Nfvservicechain.nfviNode[0] typename "\"omnet_nfv.Nfvinode\""
 par Nfvservicechain.nfviNode[0] numVnfs 10
-par Nfvservicechain.nfviNode[0] id 0
-par Nfvservicechain.nfviNode[0] dataPlaneIp 10
 par Nfvservicechain.nfviNode[0] cpuCapacity 10000MIPS
 attr unit MIPS
 par Nfvservicechain.nfviNode[0] memoryCapacity 8192MB
@@ -406,31 +424,31 @@ attr unit Mbps
 par Nfvservicechain.nfviNode[1].Server111 typename "\"omnet_nfv.Server\""
 par Nfvservicechain.nfviNode[1].Server111 myIpAddress 103
 attr mutable ""
-par Nfvservicechain.nfviNode[1].Server111 cpuConsumptionPerRequest 0MIPS
+par Nfvservicechain.nfviNode[1].Server111 cpuConsumptionPerRequest 1000MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[1].Server111 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[1].Server111 memoryConsumption 512MB
 attr unit MB
-par Nfvservicechain.nfviNode[1].Server111 bandwidthConsumption 0MIPS
-attr unit MIPS
+par Nfvservicechain.nfviNode[1].Server111 bandwidthConsumption 100Mbps
+attr unit Mbps
 par Nfvservicechain.nfviNode[1].Server112 typename "\"omnet_nfv.Server\""
 par Nfvservicechain.nfviNode[1].Server112 myIpAddress 104
 attr mutable ""
-par Nfvservicechain.nfviNode[1].Server112 cpuConsumptionPerRequest 0MIPS
+par Nfvservicechain.nfviNode[1].Server112 cpuConsumptionPerRequest 1000MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[1].Server112 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[1].Server112 memoryConsumption 512MB
 attr unit MB
-par Nfvservicechain.nfviNode[1].Server112 bandwidthConsumption 0MIPS
-attr unit MIPS
+par Nfvservicechain.nfviNode[1].Server112 bandwidthConsumption 100Mbps
+attr unit Mbps
 par Nfvservicechain.nfviNode[1].Loadbalancer11 typename "\"omnet_nfv.Loadbalancer\""
 par Nfvservicechain.nfviNode[1].Loadbalancer11 myIpAddress 105
 attr mutable ""
-par Nfvservicechain.nfviNode[1].Loadbalancer11 cpuConsumptionPerPacket 0MIPS
+par Nfvservicechain.nfviNode[1].Loadbalancer11 cpuConsumptionPerPacket 500MIPS
 attr immutable ""
 attr unit MIPS
-par Nfvservicechain.nfviNode[1].Loadbalancer11 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[1].Loadbalancer11 memoryConsumption 256MB
 attr immutable ""
 attr unit MB
-par Nfvservicechain.nfviNode[1].Loadbalancer11 bandwidthConsumption 0Mbps
+par Nfvservicechain.nfviNode[1].Loadbalancer11 bandwidthConsumption 50Mbps
 attr immutable ""
 attr unit Mbps
 par Nfvservicechain.nfviNode[1].Firewall11 typename "\"omnet_nfv.Firewall\""
@@ -438,40 +456,40 @@ par Nfvservicechain.nfviNode[1].Firewall11 loadBalancerVIP 0
 attr mutable ""
 par Nfvservicechain.nfviNode[1].Firewall11 myIpAddress 106
 attr mutable ""
-par Nfvservicechain.nfviNode[1].Firewall11 cpuConsumptionPerPacket 0MIPS
+par Nfvservicechain.nfviNode[1].Firewall11 cpuConsumptionPerPacket 700MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[1].Firewall11 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[1].Firewall11 memoryConsumption 256MB
 attr unit MB
-par Nfvservicechain.nfviNode[1].Firewall11 bandwidthConsumption 0Mbps
+par Nfvservicechain.nfviNode[1].Firewall11 bandwidthConsumption 70Mbps
 attr unit Mbps
 par Nfvservicechain.nfviNode[1].Server311 typename "\"omnet_nfv.Server\""
 par Nfvservicechain.nfviNode[1].Server311 myIpAddress 110
 attr mutable ""
-par Nfvservicechain.nfviNode[1].Server311 cpuConsumptionPerRequest 0MIPS
+par Nfvservicechain.nfviNode[1].Server311 cpuConsumptionPerRequest 1000MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[1].Server311 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[1].Server311 memoryConsumption 512MB
 attr unit MB
-par Nfvservicechain.nfviNode[1].Server311 bandwidthConsumption 0MIPS
-attr unit MIPS
+par Nfvservicechain.nfviNode[1].Server311 bandwidthConsumption 100Mbps
+attr unit Mbps
 par Nfvservicechain.nfviNode[1].Server312 typename "\"omnet_nfv.Server\""
 par Nfvservicechain.nfviNode[1].Server312 myIpAddress 111
 attr mutable ""
-par Nfvservicechain.nfviNode[1].Server312 cpuConsumptionPerRequest 0MIPS
+par Nfvservicechain.nfviNode[1].Server312 cpuConsumptionPerRequest 1000MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[1].Server312 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[1].Server312 memoryConsumption 512MB
 attr unit MB
-par Nfvservicechain.nfviNode[1].Server312 bandwidthConsumption 0MIPS
-attr unit MIPS
+par Nfvservicechain.nfviNode[1].Server312 bandwidthConsumption 100Mbps
+attr unit Mbps
 par Nfvservicechain.nfviNode[1].Loadbalancer31 typename "\"omnet_nfv.Loadbalancer\""
 par Nfvservicechain.nfviNode[1].Loadbalancer31 myIpAddress 112
 attr mutable ""
-par Nfvservicechain.nfviNode[1].Loadbalancer31 cpuConsumptionPerPacket 0MIPS
+par Nfvservicechain.nfviNode[1].Loadbalancer31 cpuConsumptionPerPacket 500MIPS
 attr immutable ""
 attr unit MIPS
-par Nfvservicechain.nfviNode[1].Loadbalancer31 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[1].Loadbalancer31 memoryConsumption 256MB
 attr immutable ""
 attr unit MB
-par Nfvservicechain.nfviNode[1].Loadbalancer31 bandwidthConsumption 0Mbps
+par Nfvservicechain.nfviNode[1].Loadbalancer31 bandwidthConsumption 50Mbps
 attr immutable ""
 attr unit Mbps
 par Nfvservicechain.nfviNode[1].Firewall31 typename "\"omnet_nfv.Firewall\""
@@ -479,16 +497,14 @@ par Nfvservicechain.nfviNode[1].Firewall31 loadBalancerVIP 0
 attr mutable ""
 par Nfvservicechain.nfviNode[1].Firewall31 myIpAddress 113
 attr mutable ""
-par Nfvservicechain.nfviNode[1].Firewall31 cpuConsumptionPerPacket 0MIPS
+par Nfvservicechain.nfviNode[1].Firewall31 cpuConsumptionPerPacket 700MIPS
 attr unit MIPS
-par Nfvservicechain.nfviNode[1].Firewall31 memoryConsumption 0MB
+par Nfvservicechain.nfviNode[1].Firewall31 memoryConsumption 256MB
 attr unit MB
-par Nfvservicechain.nfviNode[1].Firewall31 bandwidthConsumption 0Mbps
+par Nfvservicechain.nfviNode[1].Firewall31 bandwidthConsumption 70Mbps
 attr unit Mbps
 par Nfvservicechain.nfviNode[1] typename "\"omnet_nfv.Nfvinode\""
 par Nfvservicechain.nfviNode[1] numVnfs 10
-par Nfvservicechain.nfviNode[1] id 0
-par Nfvservicechain.nfviNode[1] dataPlaneIp 11
 par Nfvservicechain.nfviNode[1] cpuCapacity 10000MIPS
 attr unit MIPS
 par Nfvservicechain.nfviNode[1] memoryCapacity 8192MB

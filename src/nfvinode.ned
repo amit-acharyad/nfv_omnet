@@ -4,8 +4,6 @@ simple Nfvinode
 {
     parameters:
         int numVnfs=default(10);
-        int id;
-        int dataPlaneIp;
         double cpuCapacity @unit("MIPS");
         double memoryCapacity @unit("MB");
         double networkBandwidth @unit("Mbps");
